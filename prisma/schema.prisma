@@ -30,18 +30,16 @@ model CrawlerConfig {
 model User {
   id                 Int    @id @default(autoincrement())
   address            String @unique @db.VarChar(100)
-  nftId              Int?   @map("nft_id")
   status             Int    @default(0)
   totalRepaid        Float  @default(0) @map("total_repaid")
   numberLoanRepaid   Float  @default(0) @map("number_loan_repaid")
   currentOutstanding Float  @default(0) @map("current_outstanding")
   proxyStatus        Int    @default(0) @map("proxy_status")
 
-  earliestMaturty DateTime? @map("earliest_maturty")
-
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
   tokens      TokenOfUser[]
+  assets      AssetProfile[]
 
   @@map("users")
 }
@@ -56,3 +54,33 @@ model TokenOfUser {
   @@map("tokens")
 }
 
+model AssetProfile {
+  id                Int     @id @default(autoincrement())
+  userId            Int     @map("user_id")
+  assetName         String? @db.VarChar(255) @map("asset_name")
+  developmentStage  String? @db.VarChar(255) @map("development_stage")
+  category          String? @db.VarChar(255) @map("category")
+  ownerProfileId    Int?    @map("owner_profile_id") @unique
+  
+  user              User          @relation(fields: [userId], references: [id])
+  ownerProfile      OwnerProfile? @relation(fields: [ownerProfileId], references: [id])
+
+  @@map("asset_profiles")
+}
+
+model OwnerProfile {
+  id              Int     @id @default(autoincrement())
+  firstName       String? @db.VarChar(30) @map("first_name")
+  lastName        String? @db.VarChar(30) @map("last_name")
+  ownerName       String? @db.VarChar(128) @map("owner_name")
+  ownershipType   Int?    @map("ownership_type")
+  website         String? @db.VarChar(255)
+  relationship    String? @db.VarChar(255)
+  summary         String? @db.VarChar(1000)
+  businessSector  String? @db.VarChar(255)
+  incorporated    Boolean @default(true)
+
+  asset  AssetProfile?
+
+  @@map("owner_profiles")
+}

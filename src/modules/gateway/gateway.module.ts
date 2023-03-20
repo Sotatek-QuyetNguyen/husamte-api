@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SocketService } from 'src/share/socket/socket.service';
+import { UserModule } from './user/user.module';
 @Module({
-  imports: [],
+  imports: [
+    UserModule
+  ],
   controllers: [],
   providers: [],
 })
