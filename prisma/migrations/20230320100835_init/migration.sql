@@ -50,6 +50,8 @@ CREATE TABLE `asset_profiles` (
     `development_stage` VARCHAR(255) NULL,
     `category` VARCHAR(255) NULL,
     `owner_profile_id` INTEGER NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `asset_profiles_owner_profile_id_key`(`owner_profile_id`),
     PRIMARY KEY (`id`)
@@ -67,6 +69,8 @@ CREATE TABLE `owner_profiles` (
     `summary` VARCHAR(1000) NULL,
     `businessSector` VARCHAR(255) NULL,
     `incorporated` BOOLEAN NOT NULL DEFAULT true,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
