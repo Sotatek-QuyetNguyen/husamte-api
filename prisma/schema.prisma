@@ -72,6 +72,7 @@ model AssetProfile {
 
 model OwnerProfile {
   id              Int       @id @default(autoincrement())
+  assetId         Int       @map("asset_id")
   firstName       String?   @db.VarChar(30) @map("first_name")
   lastName        String?   @db.VarChar(30) @map("last_name")
   ownerName       String?   @db.VarChar(128) @map("owner_name")
