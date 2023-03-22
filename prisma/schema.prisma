@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model CrawlerConfig {
+  id          Int       @id @default(autoincrement())
+  key         String    @db.VarChar(100)
+  order       Int       @default(0)
+  stringValue String    @default("") @db.VarChar(1000)
+  numberValue Int       @default(0)
+  isMulti     Boolean   @default(true)
+  instanceId  String?
+  lastPing    DateTime? @default(now())
+
+  @@unique([key, order], name: "key_order_unique")
+  @@index(key)
+  @@index([key, instanceId])
+  @@map("crawler_configs")
+}
+
+model User {
+  id                 Int    @id @default(autoincrement())
+  address            String @unique @db.VarChar(100)
+  status             Int    @default(0)
+  totalRepaid        Float  @default(0) @map("total_repaid")
+  numberLoanRepaid   Float  @default(0) @map("number_loan_repaid")
+  currentOutstanding Float  @default(0) @map("current_outstanding")
+  proxyStatus        Int    @default(0) @map("proxy_status")
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  tokens      TokenOfUser[]
+  assets      AssetProfile[]
+
+  @@map("users")
+}
+
+model TokenOfUser {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(255)
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("tokens")
+}
+
+model AssetProfile {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  assetName      String?  @map("asset_name") @db.VarChar(255)
+  stageId        Int?     @unique @map("stage_id")
+  categoryId     Int?     @unique @map("category_id")
+  sectorId       Int?     @unique @map("sector_id")
+  ownerProfileId Int?     @unique @map("owner_profile_id")
+  description    String?  @map("description") @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @map("updated_at")
+  rate           Float    @default(0) @map("rate")
+  status         Int      @default(0)
+  valuation      Decimal  @default(0) @db.Decimal(20, 2)
+
+  user         User          @relation(fields: [userId], references: [id])
+  ownerProfile OwnerProfile? @relation(fields: [ownerProfileId], references: [id])
+  stage        Stage?        @relation(fields: [stageId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  sector       Sector?       @relation(fields: [sectorId], references: [id])
+
+  @@map("asset_profiles")
+}
+
+model OwnerProfile {
+  id              Int       @id @default(autoincrement())
+  assetId         Int       @map("asset_id")
+  firstName       String?   @db.VarChar(30) @map("first_name")
+  lastName        String?   @db.VarChar(30) @map("last_name")
+  ownerName       String?   @db.VarChar(128) @map("owner_name")
+  ownershipType   Int?      @map("ownership_type")
+  website         String?   @db.VarChar(255)
+  relationship    String?   @db.VarChar(255)
+  summary         String?   @db.VarChar(1000)
+  businessSector  String?   @db.VarChar(255)
+  incorporated    Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
+
+  asset  AssetProfile?
+
+  @@map("owner_profiles")
+}
+
+model Stage {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("stage")
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("category")
+}
+
+model Sector {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("sector")
+}
