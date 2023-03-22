@@ -17,11 +17,7 @@ export class UserService extends BaseService {
   }
 
   async get(req: Request, id: any): Promise<any> {
-    return super.get(req, id, {
-      include: {
-        proxies: true,
-      }
-    });
+    return super.get(req, id);
   }
 
   async signout(token: number): Promise<any> {
