@@ -55,17 +55,25 @@ model TokenOfUser {
 }
 
 model AssetProfile {
-  id                Int       @id @default(autoincrement())
-  userId            Int       @map("user_id")
-  assetName         String?   @db.VarChar(255) @map("asset_name")
-  developmentStage  String?   @db.VarChar(255) @map("development_stage")
-  category          String?   @db.VarChar(255) @map("category")
-  ownerProfileId    Int?      @map("owner_profile_id") @unique
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @default(now()) @map("updated_at")
-  
-  user              User          @relation(fields: [userId], references: [id])
-  ownerProfile      OwnerProfile? @relation(fields: [ownerProfileId], references: [id])
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  assetName      String?  @map("asset_name") @db.VarChar(255)
+  stageId        Int?     @unique @map("stage_id")
+  categoryId     Int?     @unique @map("category_id")
+  sectorId       Int?     @unique @map("sector_id")
+  ownerProfileId Int?     @unique @map("owner_profile_id")
+  description    String?  @map("description") @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @map("updated_at")
+  rate           Float    @default(0) @map("rate")
+  status         Int      @default(0)
+  valuation      Decimal  @default(0) @db.Decimal(20, 2)
+
+  user         User          @relation(fields: [userId], references: [id])
+  ownerProfile OwnerProfile? @relation(fields: [ownerProfileId], references: [id])
+  stage        Stage?        @relation(fields: [stageId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  sector       Sector?       @relation(fields: [sectorId], references: [id])
 
   @@map("asset_profiles")
 }
@@ -88,4 +96,28 @@ model OwnerProfile {
   asset  AssetProfile?
 
   @@map("owner_profiles")
+}
+
+model Stage {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("stage")
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("category")
+}
+
+model Sector {
+  id           Int           @id @default(autoincrement())
+  name         String?       @map("name") @db.VarChar(255)
+  AssetProfile AssetProfile?
+
+  @@map("sector")
 }
