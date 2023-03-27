@@ -1,13 +1,9 @@
 import { Module } from '@nestjs/common';
 import { SocketService } from 'src/share/socket/socket.service';
-import { AssetProfileModule } from './asset-profile/asset-profile.module';
-import { OwnerProfileModule } from './owner-profile/owner-profile.module';
 import { UserModule } from './user/user.module';
 @Module({
   imports: [
     UserModule,
-    AssetProfileModule,
-    OwnerProfileModule,
   ],
   controllers: [],
   providers: [],

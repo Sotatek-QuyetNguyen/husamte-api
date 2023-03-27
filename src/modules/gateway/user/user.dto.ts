@@ -1,48 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsString, MaxLength } from "class-validator";
 
-export class CreateUserDTO {
-
-}
-
-export class UpdateUserDTO {
-
-}
-
-export class UserSignDTO {
+export class SearchUserDTO {
+  @ApiProperty({
+    required: true,
+    example: 'email',
+  })
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({
-    required: true,
-    example: '0x0000000000000000000000000000000000000000',
-  })
-  address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    required: true,
-    example: '0x0000000000000000000000000000000000000000',
-  })
-  sign: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({
-    required: true,
-    example: 1676362449722,
-  })
-  timestamp: number;
-}
-
-export class SignKYCDTO {
-  @ApiProperty()
-  @IsInt()
-  @IsNotEmpty()
-  @ApiProperty({
-    required: true,
-    example: 5,
-  })
-  chainId: number;
-
+  @MaxLength(100, { message: 'Input’s maximum length is 100 characters.' })
+  email: string;
 }
