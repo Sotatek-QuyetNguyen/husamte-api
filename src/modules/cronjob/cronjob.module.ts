@@ -16,7 +16,7 @@ export class CronjobModule {
     private readonly blockchainEthereumService: BlockchainEthereumService,
   ) {
     setTimeout(() => {
-      this.blockchainEthereumService.run();
+      //this.blockchainEthereumService.run();
       //this.loanService.run();
     });
   }
