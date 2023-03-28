@@ -41,6 +41,8 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
 
   tokens        TokenOfUser[]
+  properties    Property[]
+  owned         OwnerOfProperty[]
   @@map("users")
 }
 
@@ -52,4 +54,31 @@ model TokenOfUser {
   createdAt DateTime @default(now())
 
   @@map("tokens")
+}
+
+model Property {
+  id              Int      @id @default(autoincrement())
+  createdBy       Int      @map("created_by")
+  name            String?  @map("asset_name") @db.VarChar(255)
+  description     String?  @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  user         User              @relation(fields: [createdBy], references: [id])
+  owner        OwnerOfProperty[]
+
+  @@map("properties")
+}
+
+model OwnerOfProperty {
+  propertyId     Int
+  userId         Int
+  percentage     Float
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, userId])
+  @@map("owner_of_property")
 }
