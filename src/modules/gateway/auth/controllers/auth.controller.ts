@@ -1,6 +1,6 @@
 import { Controller, Body, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Get, Post, UseGuards } from '@nestjs/common/decorators';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/share/common/decorators';
 import { Payload } from '../auth.interface';
 import { LoginInput, RegisterDto } from '../dtos/login.input';
@@ -32,6 +32,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('jwt/check')
   public jwtCheck(@ReqUser() user: Payload): Payload | undefined {
     return user;
