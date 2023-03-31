@@ -13,11 +13,9 @@ export class PropertyService extends BaseService {
     super(prismaService, 'property', 'Property', configService);
   }
 
-  async createProperty(data: CreatePropertyDTO): Promise<any> {
+  async createProperty(data: CreatePropertyDTO, adminId: number): Promise<any> {
     await this.validateOwnersExist(data.owners);
     this.validatePercentage(data.owners);
-    // Fake admin id
-    const adminId = 5;
     try {
       return await this.prismaService.$transaction(async (transaction) => {
         const property = await transaction.property.create({ data: { createdBy: adminId } });

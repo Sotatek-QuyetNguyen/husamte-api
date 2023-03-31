@@ -47,10 +47,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
   }
 
   public getRequest(context: ExecutionContext): Request {
-    if (context.getType<GqlContextType>() === 'graphql') {}
+    if (context.getType<GqlContextType>() === 'graphql') {
       const ctx = GqlExecutionContext.create(context).getContext();
       return <Request>ctx.req;
-    // }
+    }
     return context.switchToHttp().getRequest<Request>();
   }
 }

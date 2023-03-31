@@ -7,6 +7,7 @@ import { CommonModule } from 'src/share/common/common.module';
 import { AuthSerializer } from './auth.serializer';
 import * as controllers from './controllers';
 import { JwtAuthGuard } from './guards';
+import { AdminGuard } from './guards/admin.guard';
 import { AuthService } from './providers/auth.service';
 import { LocalStrategy, JwtStrategy } from './strategies';
 
@@ -22,6 +23,7 @@ import { LocalStrategy, JwtStrategy } from './strategies';
   ],
   providers: [
     JwtAuthGuard,
+    AdminGuard,
     AuthService,
     AuthSerializer,
     LocalStrategy,

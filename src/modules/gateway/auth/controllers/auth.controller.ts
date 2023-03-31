@@ -1,7 +1,10 @@
 import { Controller, Body, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Post } from '@nestjs/common/decorators';
+import { Get, Post, UseGuards } from '@nestjs/common/decorators';
 import { ApiTags } from '@nestjs/swagger';
+import { ReqUser } from 'src/share/common/decorators';
+import { Payload } from '../auth.interface';
 import { LoginInput, RegisterDto } from '../dtos/login.input';
+import { JwtAuthGuard } from '../guards';
 import { AuthService } from '../providers';
 import { TransformPasswordPipe } from '../tranform-password.pipe';
 
@@ -26,5 +29,11 @@ export class AuthController {
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return await this.auth.register(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('jwt/check')
+  public jwtCheck(@ReqUser() user: Payload): Payload | undefined {
+    return user;
   }
 }

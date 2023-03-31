@@ -1,6 +1,7 @@
-import { Controller, Get, Query, Req } from "@nestjs/common";
+import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
+import { AdminGuard } from "../auth/guards/admin.guard";
 import { SearchUserDTO } from "./user.dto";
 import { UserService } from "./user.service";
 
@@ -11,6 +12,8 @@ export class UserController {
 
   @Get('/search')
   @ApiOperation({ summary: `Search user by email` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
   searchByEmail(
     @Query() query: SearchUserDTO
   ): Promise<any> {
