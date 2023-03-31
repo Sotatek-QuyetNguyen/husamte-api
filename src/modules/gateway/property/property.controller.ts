@@ -1,9 +1,9 @@
-import { Body, Controller, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ReqUser } from "src/share/common/decorators";
 import { Payload } from "../auth";
 import { AdminGuard } from "../auth/guards/admin.guard";
-import { CreatePropertyDTO, UpdatePropertyDTO } from "./property.dto";
+import { CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, UpdatePropertyDTO } from "./property.dto";
 import { PropertyService } from "./property.service";
 
 @Controller('property')
@@ -30,5 +30,35 @@ export class PropertyController {
     @Body() body: UpdatePropertyDTO
   ): Promise<any> {
     return await this.propertyService.updateProperty(body);
+  }
+
+  @Get()
+  @ApiOperation({ summary: `Get property profile` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async get(
+    @Query() params: GetOnePropertyDTO
+  ): Promise<any> {
+    return await this.propertyService.getProperty(params.id);
+  }
+
+  @Get('/all')
+  @ApiOperation({ summary: `Get list property profile` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async getList(
+    @Query() params: GetListPropertyDTO
+  ): Promise<any> {
+    return await this.propertyService.getListProperty(params);
+  }
+
+  @Delete()
+  @ApiOperation({ summary: `Get list property profile` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async delete(
+    @Query() params: DeleteOnePeropertyDTO
+  ): Promise<any> {
+    return await this.propertyService.deleteProperty(params.id);
   }
 }

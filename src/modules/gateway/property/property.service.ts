@@ -3,8 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { BaseService } from 'src/share/common/base.service';
 import { PrismaService } from 'src/share/prisma/prisma.service';
 import { CrawlerConfigService } from 'src/share/configs/config.service';
-import { CreatePropertyDTO, ownerDTO, UpdatePropertyDTO } from './property.dto';
-import { ROOM_TYPE } from './property.const';
+import { CreatePropertyDTO, GetListPropertyDTO, ownerDTO, UpdatePropertyDTO } from './property.dto';
+import { PROPERTY_STATUS, ROOM_TYPE } from './property.const';
+import { order_by } from 'src/share/dto/page-option-swagger.dto';
+import { USER_ROLES } from 'src/share/common/constants';
 
 @Injectable()
 export class PropertyService extends BaseService {
@@ -22,26 +24,7 @@ export class PropertyService extends BaseService {
         for (let owner of data.owners) {
           await this.createOwnerOfProperty(property.id, owner.userId, Number(owner.percentage), transaction);
         }
-        return await transaction.property.findFirst({
-          where: {
-            id: property.id
-          },
-          include: {
-            owner: {
-              select: {
-                userId: true,
-                percentage: true,
-                user: {
-                  select: {
-                    email: true,
-                    name: true,
-                    dateOfBirth: true
-                  }
-                }
-              }
-            },
-          }
-        })
+        return await this.getProperty(property.id, transaction);
       });
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -50,7 +33,7 @@ export class PropertyService extends BaseService {
 
   async validateOwnersExist(owners: ownerDTO[]) {
     for(const owner of owners) {
-      const user = await this.prismaService.user.findFirst({ where: { id: owner.userId } });
+      const user = await this.prismaService.user.findFirst({ where: { id: owner.userId, role: USER_ROLES.USER } });
       if (!user) {
         throw new HttpException(`User id ${owner.userId} not exist!`, HttpStatus.UNPROCESSABLE_ENTITY);
       }
@@ -118,32 +101,51 @@ export class PropertyService extends BaseService {
     await transaction.room.createMany({ data: rooms});
   }
 
-  async getProperty(id: number) {
-    let property = await this.prismaService.property.findFirst({
-      where: { id },
-      include: {
-        owner: {
-          select: {
-            userId: true,
-            percentage: true,
-            user: {
-              select: {
-                email: true,
-                name: true,
-                dateOfBirth: true
-              }
-            }
-          }
-        },
-        room: true,
-      }
-    })
-    if (property.room.length) {
-      property.room.map((room) => {
+  async getProperty(id: number, transaction: any = undefined) {
+    let include = this.getPropertyIncludeQuery();
+    let property: any;
+    let query = {
+      where: {
+        id,
+        NOT: {
+          status: PROPERTY_STATUS.DELETED 
+        }
+      },
+      include: include,
+    };
+    if (transaction !== undefined) {
+      property = await transaction.property.findFirst(query);
+    } else {
+      property = await this.prismaService.property.findFirst(query);
+    }
+    if (property?.room !== undefined && property?.room.length) {
+      property.room.map((room: any) => {
         room.feature = JSON.parse(room.feature)
       });
     }
-    return property;
+    if (property) {
+      return property;
+    }
+    throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+  }
+
+  getPropertyIncludeQuery() {
+    return {
+      owner: {
+        select: {
+          userId: true,
+          percentage: true,
+          user: {
+            select: {
+              email: true,
+              name: true,
+              dateOfBirth: true
+            }
+          }
+        }
+      },
+      room: true,
+    };
   }
 
   validateRoomInformation(data: UpdatePropertyDTO) {
@@ -165,6 +167,60 @@ export class PropertyService extends BaseService {
       if (otherRooms[roomName] != data.rooms.filter((room) => { return room.type == ROOM_TYPE[roomName] }).length) {
         throw new HttpException(`${roomName} information missing or redundancy`, HttpStatus.UNPROCESSABLE_ENTITY);
       }
+    }
+  }
+
+  async getListProperty(params: GetListPropertyDTO) {
+    let where = {
+      NOT: {
+        status: PROPERTY_STATUS.DELETED 
+      }
+    };
+    let orderBy = {};
+    if (params.filterStatus != undefined) {
+      where['status'] = params.filterStatus;
+    }
+    if (params.search != undefined) {
+      where['OR'] = [
+        {
+          name: { contains: params.search },
+        },
+        {
+          description: { contains: params.search }
+        },
+      ];
+    }
+    if (params.order_by != undefined && params.sort_by != undefined) {
+      orderBy[`${params.sort_by}`] = params.order_by;
+    } else {
+      orderBy['id'] = order_by.desc;
+    }
+    const take = params.size;
+    const skip = Math.max(Math.max(params.page - 1, 0) * take, 0);
+    const result = await this.prismaService.property.findMany({
+      where,
+      include: this.getPropertyIncludeQuery(),
+      orderBy,
+      skip,
+      take,
+    })
+    if (result.length) {
+      const meta = await this.buildMetaData(take, where);
+      return { meta, data: result };
+    }
+    throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+  }
+
+  async deleteProperty(id: number) {
+    try {
+      await this.prismaService.property.update({
+        where: { id },
+        data: { status: PROPERTY_STATUS.DELETED }
+      });
+      return { result: "Delete property success" };
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(`Property delete failure`, HttpStatus.BAD_REQUEST);
     }
   }
 }
