@@ -33,3 +33,6 @@ export const REDIS_EXPIRE_RESEND = {
   ENABLE_2FA_GOOGLE: 5,
   ENABLE_2FA: 6,
 };
+
+export const FIELD_REQUIRED = 'This field is required';
+export const REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT = /^[0-9][0-9]*[.]?[1-9]{0,2}$/;

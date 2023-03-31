@@ -57,15 +57,34 @@ model TokenOfUser {
 }
 
 model Property {
-  id              Int      @id @default(autoincrement())
-  createdBy       Int      @map("created_by")
-  name            String?  @map("asset_name") @db.VarChar(255)
-  description     String?  @db.VarChar(255)
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @map("updated_at")
+  id                    Int      @id @default(autoincrement())
+  createdBy             Int      @map("created_by")
+  name                  String?  @map("asset_name") @db.VarChar(100)
+  description           String?  @db.VarChar(1000)
+  image                 String?  @db.VarChar(500)
+  type                  Int?
+  acreage               Float?
+  bedroomCount          Int      @map("bedroom_count") @default(0)
+  bathroomCount         Int      @map("bathroom_count") @default(0)
+  parkingSlot           Int      @map("parking_slot") @default(0)
+  airConditioningType   Int?     @map("air_conditioning_type")
+  external              Int?
+  basement              Int?
+  hasKitchen            Boolean  @map("has_kitchen") @default(false)
+  hasFoyer              Boolean  @map("has_foyer") @default(false)
+  hasBreakfast          Boolean  @map("has_breakfast") @default(false)
+  hasLivingroom         Boolean  @map("has_livingroom") @default(false)
+  hasDiningroom         Boolean  @map("has_diningroom") @default(false)
+  hasFamilyroom         Boolean  @map("has_familyroom") @default(false)
+  hasLaundry            Boolean  @map("has_laundry") @default(false)
+  extras                String?  @db.VarChar(1000)
+  status                Int      @default(0)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @map("updated_at")
 
   user         User              @relation(fields: [createdBy], references: [id])
   owner        OwnerOfProperty[]
+  room         Room[]
 
   @@map("properties")
 }
@@ -81,4 +100,19 @@ model OwnerOfProperty {
 
   @@id([propertyId, userId])
   @@map("owner_of_property")
+}
+
+model Room {
+  id              Int      @id @default(autoincrement())
+  type            Int
+  propertyId      Int
+  length          Float?
+  width           Float?
+  feature         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("rooms")
 }
