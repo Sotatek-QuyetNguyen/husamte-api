@@ -6,7 +6,7 @@ export class LoginInput {
   @IsString()
   @ApiProperty({
     example: 'test@gmail.com',
-    description: 'Username',
+    description: 'email',
 })
   @IsEmail()
   public email!: string;
