@@ -1,9 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
 import { IsBiggerThanZero } from "src/share/common/base.dto";
 import { FIELD_REQUIRED, REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT } from "src/share/common/constants";
-import { AIR_CONDITIONING_TYPE, PROPERTY_BASEMENT, PROPERTY_EXTERNAL, PROPERTY_TYPE, ROOM_FEATURE, ROOM_TYPE } from "./property.const";
+import { order_by, PageOptionsSwagger } from "src/share/dto/page-option-swagger.dto";
+import { AIR_CONDITIONING_TYPE, PROPERTY_BASEMENT, PROPERTY_EXTERNAL, PROPERTY_STATUS, PROPERTY_TYPE, ROOM_FEATURE, ROOM_TYPE } from "./property.const";
 
 export function IsBiggerThanZeroAndSmallerThan100(
   property: any,
@@ -255,3 +256,63 @@ export class RoomDTO {
   })
   feature: number[];
 }
+
+export class GetOnePropertyDTO {
+  @ApiProperty({
+    description: "Id of property",
+    required: true,
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsInt({ message: 'Input can only contain number.' })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  id: number;
+}
+
+export class GetListPropertyDTO {
+  @ApiPropertyOptional({ enum: order_by, default: order_by.asc })
+  @IsEnum(order_by)
+  @IsOptional()
+  readonly order_by?: order_by;
+
+  @ApiPropertyOptional()
+  @Type(() => String)
+  @IsOptional()
+  readonly sort_by?: string;
+
+  @ApiPropertyOptional({
+    minimum: 0,
+    default: 0,
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  readonly page?: number = 0;
+
+  @ApiPropertyOptional({
+    minimum: 0,
+    default: 9,
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  readonly size?: number = 9;
+
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
+  @IsIn(Object.values(PROPERTY_STATUS))
+  filterStatus: number
+
+  @Type(() => String)
+  @IsOptional()
+  @IsString()
+  search: string
+}
+
+export class DeleteOnePeropertyDTO extends GetOnePropertyDTO {}
