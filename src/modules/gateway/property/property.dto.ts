@@ -72,8 +72,8 @@ export class ownerDTO {
   })
   @IsNotEmpty()
   @IsNumberString()
-  @Matches(/^\d{0,10}(\.\d{2,})?$/, {
-    message: 'percentage must be a number have 2 digits after decimal'
+  @Matches(REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT, {
+    message: 'percentage must be a number and have max 2 digits after decimal'
   })
   @IsBiggerThanZeroAndSmallerThan100('percentage', {
     message: 'percentage must be bigger than 0 and smaller than 100'
