@@ -22,10 +22,12 @@ import {
 import { CacheService } from 'src/share/common/providers';
 import { EmailService } from 'src/share/common/providers/email.service';
 import { id } from 'ethers/lib/utils';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService extends BaseService {
   private BE_URL: string = process.env['BE_URL'] || '';
+  private FE_URL: string = process.env['FE_URL'] || '';
   constructor(
     private jwt: JwtService,
     private util: UtilService,
@@ -297,5 +299,30 @@ export class AuthService extends BaseService {
       `${REDIS.PREFIX}:${REDIS.FORGOT_PASSWORD}:${user.email.toLowerCase()}`,
     );
     return this.util.buildSuccessResponse('');
+  }
+
+  /* check reset password valid
+  @Param: id, code
+  @Return:
+  */
+  public async checkResetPassword(
+    res: Response,
+    id: string,
+    code: string,
+  ): Promise<any> {
+    // Check Email not found
+    const user = await this.prismaService.user.findFirst({
+      where: { id: Number(id) },
+    });
+    if (!user) return res.send('This link is invalid!');
+
+    // Check code exist
+    const cacheRedis = await this.cacheService.getAsync(
+      `${REDIS.PREFIX}:${REDIS.FORGOT_PASSWORD}:${user.email.toLowerCase()}`,
+    );
+    if (!cacheRedis || cacheRedis !== code)
+      return res.send('This link is invalid!');
+
+    return res.redirect(`${this.FE_URL}/reset-password?code=${code}&id=${id}`);
   }
 }
