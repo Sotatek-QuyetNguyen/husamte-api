@@ -39,6 +39,7 @@ model User {
   secretKey     String?   @db.VarChar(500)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
+  lastTimeForGotPassword  DateTime? @map("last_time_forgot_password") @db.Date()
 
   tokens        TokenOfUser[]
   properties    Property[]

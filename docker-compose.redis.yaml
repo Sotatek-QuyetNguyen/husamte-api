@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 8353:6379
+    expose:
+      - 6379
+volumes:
+  db_data: {}

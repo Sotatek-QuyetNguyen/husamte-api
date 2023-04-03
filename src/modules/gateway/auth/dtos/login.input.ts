@@ -7,7 +7,7 @@ export class LoginInput {
   @ApiProperty({
     example: 'test@gmail.com',
     description: 'email',
-})
+  })
   @IsEmail()
   public email!: string;
 
@@ -37,3 +37,29 @@ export class RegisterDto {
   @IsNotEmpty()
   dateOfBirth: Date;
 }
+
+export class ForgotPassword {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordInput {
+  @ApiProperty()
+  @IsNotEmpty()
+  public id!: number;
+
+  @ApiProperty()
+  @IsString()
+  public code!: string;
+
+  @ApiProperty()
+  @IsString()
+  public newPassword!: string;
+
+  @ApiProperty()
+  @IsString()
+  public reNewPassword!: string;
+}
+
