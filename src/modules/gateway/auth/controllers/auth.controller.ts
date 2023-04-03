@@ -1,6 +1,7 @@
 import { Controller, Body, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Get, Post, UseGuards } from '@nestjs/common/decorators';
+import { Get, Post, Res, UseGuards, Query } from '@nestjs/common/decorators';
 import { ApiBearerAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { ReqUser } from 'src/share/common/decorators';
 import { Payload } from '../auth.interface';
 import {
@@ -37,6 +38,7 @@ export class AuthController {
     return await this.auth.register(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('jwt/check')
   public jwtCheck(@ReqUser() user: Payload): Payload | undefined {
@@ -65,5 +67,19 @@ export class AuthController {
     @Body() forgotPassword: ForgotPassword,
   ): Promise<any> {
     return this.auth.getCodeForgotPassword(forgotPassword);
+  }
+
+  /* API when user click in email to get new pass
+  @Param: id, code
+  @Return: redirect
+  */
+  @ApiBearerAuth()
+  @Get('forgot-password')
+  public checkResetPassword(
+    @Query('id') id: string,
+    @Query('code') code: string,
+    @Res() res: Response,
+  ): any {
+    return this.auth.checkResetPassword(res, id, code);
   }
 }
