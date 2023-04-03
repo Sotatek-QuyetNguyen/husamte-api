@@ -37,7 +37,6 @@ export class AuthController {
     return await this.auth.register(dto);
   }
 
-  @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @Get('jwt/check')
   public jwtCheck(@ReqUser() user: Payload): Payload | undefined {
