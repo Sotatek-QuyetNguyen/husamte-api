@@ -5,7 +5,7 @@ import { hash } from 'bcrypt';
 export class TransformPasswordPipe implements PipeTransform {
   async transform(value: any, metadata: ArgumentMetadata) {
     console.log("0000000000", value);
-    value.password = await hash(value.password, 12);
+    value.password = await hash(value.password, 10);
     console.log("0000000001", value);
     return value;
   }

@@ -1,10 +1,16 @@
 import { Controller, Body, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Get, Post, UseGuards } from '@nestjs/common/decorators';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { ReqUser } from 'src/share/common/decorators';
 import { Payload } from '../auth.interface';
-import { LoginInput, RegisterDto } from '../dtos/login.input';
+import {
+  ForgotPassword,
+  LoginInput,
+  RegisterDto,
+  ResetPasswordInput,
+} from '../dtos/login.input';
 import { JwtAuthGuard } from '../guards';
+import { AdminGuard } from '../guards/admin.guard';
 import { AuthService } from '../providers';
 import { TransformPasswordPipe } from '../tranform-password.pipe';
 
@@ -31,10 +37,34 @@ export class AuthController {
     return await this.auth.register(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @Get('jwt/check')
   public jwtCheck(@ReqUser() user: Payload): Payload | undefined {
     return user;
+  }
+
+  /* reset password
+  @Param: ResetPasswordInput
+  @Return: success
+  */
+  @ApiBearerAuth()
+  @Post('reset-password')
+  public async resetPassword(
+    @Body() resetPassDto: ResetPasswordInput,
+  ): Promise<any> {
+    return this.auth.resetPassword(resetPassDto);
+  }
+
+  /* request new password by email
+  @Param: email
+  @Return: success
+  */
+  @ApiBearerAuth()
+  @Post('forgot-password')
+  public async getCodeForgotPassword(
+    @Body() forgotPassword: ForgotPassword,
+  ): Promise<any> {
+    return this.auth.getCodeForgotPassword(forgotPassword);
   }
 }

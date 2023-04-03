@@ -1,5 +1,4 @@
 import { Injectable, CACHE_MANAGER } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { REDIS } from 'src/share/common/constants';
@@ -7,21 +6,23 @@ import { Cache } from 'cache-manager';
 
 import { JwtPayload, Payload } from '../auth.interface';
 import { Inject } from '@nestjs/common/decorators/core/inject.decorator';
+import { CacheService } from 'src/share/common/providers';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache,) {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly cacheService: CacheService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: "a",
+      secretOrKey: 'a',
     });
   }
 
   public async validate(payload: JwtPayload): Promise<Payload> {
-    const lastTimeUserUpdate = await this.cacheManager.get(
-      `${REDIS.PREFIX}:${REDIS.USER_UPDATE_TIME}:${payload.sub}`,
-    );
+    const lastTimeUserUpdate = await this.cacheService.getAsync(`${REDIS.PREFIX}:${REDIS.USER_UPDATE_TIME}:${payload.sub}`);
     console.log(payload.sub, Number(lastTimeUserUpdate));
     console.log(payload.sub, Number(payload.createdAt));
     const checkToken =
