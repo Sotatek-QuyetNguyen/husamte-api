@@ -213,7 +213,7 @@ export class UpdatePropertyDTO {
 
   @IsString()
   @IsOptional()
-  @MaxLength(1000, { message: 'Input’s maximum length is 1000 characters.' })
+  @MaxLength(1000, { message: 'Maximum 1000 characters' })
   extras: string;
 
   @ApiProperty({
