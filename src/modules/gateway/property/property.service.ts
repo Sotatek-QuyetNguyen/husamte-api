@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseService } from 'src/share/common/base.service';
 import { PrismaService } from 'src/share/prisma/prisma.service';
@@ -34,13 +34,13 @@ export class PropertyService extends BaseService {
   async validateOwners(owners: ownerDTO[]) {
     const ownerIdArr = owners.map((owner) => { return owner.userId });
     if (ownerIdArr.length !== ownerIdArr.filter((value, index, array) => array.indexOf(value) === index).length) {
-      throw new HttpException("2 owners should not be duplicated", HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new BadRequestException("2 owners should not be duplicated");
     }
 
     for(const owner of owners) {
       const user = await this.prismaService.user.findFirst({ where: { id: owner.userId, role: USER_ROLES.USER } });
       if (!user) {
-        throw new HttpException(`User id ${owner.userId} not exist!`, HttpStatus.UNPROCESSABLE_ENTITY);
+        throw new BadRequestException(`User id ${owner.userId} not exist!`);
       }
     }
   }
@@ -51,7 +51,7 @@ export class PropertyService extends BaseService {
       sumPercentage += Number(owner.percentage);
     }
     if (sumPercentage != 100) {
-      throw new HttpException(`Total percentage must be equal 100%`, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new BadRequestException(`Total percentage must be equal 100%`);
     }
   }
 

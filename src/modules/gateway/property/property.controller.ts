@@ -5,6 +5,7 @@ import { Payload } from "../auth";
 import { AdminGuard } from "../auth/guards/admin.guard";
 import { CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, UpdatePropertyDTO } from "./property.dto";
 import { PropertyService } from "./property.service";
+import { ResponseUtils } from "src/share/utils/response.utils";
 
 @Controller('property')
 @ApiTags('property')
@@ -19,7 +20,7 @@ export class PropertyController {
     @ReqUser() user: Payload,
     @Body() body: CreatePropertyDTO
   ): Promise<any> {
-    return await this.propertyService.createProperty(body, Number(user.userId));
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.createProperty(body, Number(user.userId)));
   }
 
   @Put()
@@ -29,7 +30,7 @@ export class PropertyController {
   async update(
     @Body() body: UpdatePropertyDTO
   ): Promise<any> {
-    return await this.propertyService.updateProperty(body);
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.updateProperty(body));
   }
 
   @Get()
@@ -39,7 +40,7 @@ export class PropertyController {
   async get(
     @Query() params: GetOnePropertyDTO
   ): Promise<any> {
-    return await this.propertyService.getProperty(params.id);
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.getProperty(params.id));
   }
 
   @Get('/all')
@@ -49,7 +50,7 @@ export class PropertyController {
   async getList(
     @Query() params: GetListPropertyDTO
   ): Promise<any> {
-    return await this.propertyService.getListProperty(params);
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.getListProperty(params));
   }
 
   @Delete()
@@ -59,6 +60,6 @@ export class PropertyController {
   async delete(
     @Query() params: DeleteOnePeropertyDTO
   ): Promise<any> {
-    return await this.propertyService.deleteProperty(params.id);
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.deleteProperty(params.id));
   }
 }

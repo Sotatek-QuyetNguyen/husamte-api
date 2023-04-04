@@ -1,9 +1,6 @@
-// /* eslint-disable @typescript-eslint/no-unsafe-return */
-// /* eslint-disable @typescript-eslint/no-unsafe-call */
-// import { ArgumentsHost, Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
-// import { BaseExceptionFilter } from '@nestjs/core';
-// import { GqlExceptionFilter } from '@nestjs/graphql';
-// import { Response } from 'express';
+import { Response } from 'express';
+import { ArgumentsHost, BadRequestException, Catch, ExceptionFilter, HttpStatus } from "@nestjs/common"
+import { ResponseUtils } from 'src/share/utils/response.utils';
 
 // @Catch()
 // export class ExceptionsFilter extends BaseExceptionFilter implements GqlExceptionFilter {
@@ -46,3 +43,19 @@
 //     return exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 //   }
 // }
+
+@Catch(BadRequestException)
+export class ValidationExceptionFilter implements ExceptionFilter<BadRequestException> {
+  public catch (exception: BadRequestException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp()
+    const response = ctx.getResponse() as Response
+    const exceptionResponse = exception.getResponse();
+    let responseData = exceptionResponse;
+    if (typeof exceptionResponse === 'object' && exceptionResponse['message']) {
+      responseData = { message: exceptionResponse['message'] }
+    }
+    response
+      .status(HttpStatus.BAD_REQUEST)
+      .json(ResponseUtils.buildCustomResponse(1, responseData, "error"))
+  }
+}
