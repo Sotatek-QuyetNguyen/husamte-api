@@ -16,7 +16,7 @@ export class PropertyService extends BaseService {
   }
 
   async createProperty(data: CreatePropertyDTO, adminId: number): Promise<any> {
-    await this.validateOwnersExist(data.owners);
+    await this.validateOwners(data.owners);
     this.validatePercentage(data.owners);
     try {
       return await this.prismaService.$transaction(async (transaction) => {
@@ -31,7 +31,12 @@ export class PropertyService extends BaseService {
     }
   }
 
-  async validateOwnersExist(owners: ownerDTO[]) {
+  async validateOwners(owners: ownerDTO[]) {
+    const ownerIdArr = owners.map((owner) => { return owner.userId });
+    if (ownerIdArr.length !== ownerIdArr.filter((value, index, array) => array.indexOf(value) === index).length) {
+      throw new HttpException("2 owners should not be duplicated", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     for(const owner of owners) {
       const user = await this.prismaService.user.findFirst({ where: { id: owner.userId, role: USER_ROLES.USER } });
       if (!user) {
