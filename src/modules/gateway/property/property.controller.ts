@@ -53,7 +53,7 @@ export class PropertyController {
   }
 
   @Delete()
-  @ApiOperation({ summary: `Get list property profile` })
+  @ApiOperation({ summary: `Delete property profile` })
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
   async delete(
