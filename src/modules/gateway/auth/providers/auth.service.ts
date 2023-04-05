@@ -188,35 +188,35 @@ export class AuthService extends BaseService {
     }
 
     // Check code exist
-    const cacheRedis = await this.cacheService.getAsync(
-      `${REDIS.PREFIX}:${
-        REDIS.FORGOT_PASSWORD
-      }:${forgotPassword.email.toLowerCase()}`,
-    );
-    if (cacheRedis) {
-      throw new HttpException(
-        this.util.buildCustomResponse(
-          2,
-          null,
-          'Wait enough time to request again',
-        ),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (
-      user?.lastTimeForGotPassword &&
-      Date.now() - Number(user?.lastTimeForGotPassword) <
-        AUTHENTICATOR.RESET_PASSWORD
-    ) {
-      throw new HttpException(
-        this.util.buildCustomResponse(
-          3,
-          '',
-          'Please wait enough 1 day to reset password again',
-        ),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    // const cacheRedis = await this.cacheService.getAsync(
+    //   `${REDIS.PREFIX}:${
+    //     REDIS.FORGOT_PASSWORD
+    //   }:${forgotPassword.email.toLowerCase()}`,
+    // );
+    // if (cacheRedis) {
+    //   throw new HttpException(
+    //     this.util.buildCustomResponse(
+    //       2,
+    //       null,
+    //       'Wait enough time to request again',
+    //     ),
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
+    // if (
+    //   user?.lastTimeForGotPassword &&
+    //   Date.now() - Number(user?.lastTimeForGotPassword) <
+    //     AUTHENTICATOR.RESET_PASSWORD
+    // ) {
+    //   throw new HttpException(
+    //     this.util.buildCustomResponse(
+    //       3,
+    //       '',
+    //       'Please wait enough 1 day to reset password again',
+    //     ),
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
     // Import to cache
     await this.cacheService.setAsync(
       `${REDIS.PREFIX}:${
