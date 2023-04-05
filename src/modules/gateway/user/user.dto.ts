@@ -6,8 +6,8 @@ export class SearchUserDTO {
     required: true,
     example: 'email',
   })
+  @MaxLength(100, { message: 'Input’s maximum length is 100 characters.' })
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100, { message: 'Input’s maximum length is 100 characters.' })
   email: string;
 }

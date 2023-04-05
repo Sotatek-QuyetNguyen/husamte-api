@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseService } from 'src/share/common/base.service';
 import { PrismaService } from 'src/share/prisma/prisma.service';
@@ -29,12 +29,16 @@ export class UserService extends BaseService {
       status: 1,
     };
     const orderBy: any = [{ email: order_by.asc }]
-    return await this.prismaService.user.findMany({
+    const result = await this.prismaService.user.findMany({
       select: select,
       where: query,
       orderBy,
       skip: 0,
       take: 5
     });
+    if (result.length) {
+      return result;
+    }
+    throw new BadRequestException("User not found");
   }
 }

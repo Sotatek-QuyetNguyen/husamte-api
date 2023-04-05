@@ -1,9 +1,9 @@
-import { Controller, Get, Query, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Request } from "express";
 import { AdminGuard } from "../auth/guards/admin.guard";
 import { SearchUserDTO } from "./user.dto";
 import { UserService } from "./user.service";
+import { ResponseUtils } from "src/share/utils/response.utils";
 
 @Controller('users')
 @ApiTags('users')
@@ -14,9 +14,9 @@ export class UserController {
   @ApiOperation({ summary: `Search user by email` })
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
-  searchByEmail(
+  async searchByEmail(
     @Query() query: SearchUserDTO
   ): Promise<any> {
-    return this.userService.searchByEmail(query);
+    return ResponseUtils.buildSuccessResponse(await this.userService.searchByEmail(query));
   }
 }
