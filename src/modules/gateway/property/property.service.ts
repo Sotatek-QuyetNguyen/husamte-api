@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BaseService } from 'src/share/common/base.service';
 import { PrismaService } from 'src/share/prisma/prisma.service';
 import { CrawlerConfigService } from 'src/share/configs/config.service';
-import { CreatePropertyDTO, GetListPropertyDTO, ownerDTO, UpdatePropertyDTO } from './property.dto';
+import { CreatePropertyDTO, GetListPropertyDTO, ownerDTO, UpdateOwnerDTO, UpdatePropertyDTO } from './property.dto';
 import { PROPERTY_STATUS, ROOM_TYPE } from './property.const';
 import { order_by } from 'src/share/dto/page-option-swagger.dto';
 import { USER_ROLES } from 'src/share/common/constants';
@@ -226,6 +226,26 @@ export class PropertyService extends BaseService {
     } catch (e) {
       console.log(e);
       throw new HttpException(`Property delete failure`, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async updateOwner(data: UpdateOwnerDTO): Promise<any> {
+    await this.validateOwners(data.owners);
+    this.validatePercentage(data.owners);
+    const property = await this.prismaService.property.findFirst({ where: { id: data.id } });
+    if (!property) {
+      throw new BadRequestException(`Property with id ${data.id} not found`);
+    }
+    try {
+      return await this.prismaService.$transaction(async (transaction) => {
+        await transaction.ownerOfProperty.deleteMany({ where: { propertyId: property.id } });
+        for (let owner of data.owners) {
+          await this.createOwnerOfProperty(property.id, owner.userId, Number(owner.percentage), transaction);
+        }
+        return await this.getProperty(property.id, transaction);
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 }

@@ -94,6 +94,21 @@ export class CreatePropertyDTO {
   owners: ownerDTO[];
 }
 
+export class UpdateOwnerDTO extends CreatePropertyDTO {
+  @ApiProperty({
+    description: "Id of property",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Input can only contain number.' })
+  @IsNotEmpty()
+  id: number;
+}
+
 export class UpdatePropertyDTO {
   @ApiProperty({
     description: "Id of property",

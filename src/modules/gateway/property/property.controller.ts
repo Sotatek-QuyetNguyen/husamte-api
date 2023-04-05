@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ReqUser } from "src/share/common/decorators";
 import { Payload } from "../auth";
 import { AdminGuard } from "../auth/guards/admin.guard";
-import { CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, UpdatePropertyDTO } from "./property.dto";
+import { CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, UpdateOwnerDTO, UpdatePropertyDTO } from "./property.dto";
 import { PropertyService } from "./property.service";
 import { ResponseUtils } from "src/share/utils/response.utils";
 
@@ -61,5 +61,15 @@ export class PropertyController {
     @Query() params: DeleteOnePeropertyDTO
   ): Promise<any> {
     return ResponseUtils.buildSuccessResponse(await this.propertyService.deleteProperty(params.id));
+  }
+
+  @Put('owner')
+  @ApiOperation({ summary: `Update owner profile` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async updateOwner(
+    @Body() body: UpdateOwnerDTO
+  ): Promise<any> {
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.updateOwner(body));
   }
 }
