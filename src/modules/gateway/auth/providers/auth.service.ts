@@ -245,20 +245,20 @@ export class AuthService extends BaseService {
     const user = await this.prismaService.user.findFirst({
       where: { id: resetPassDto.id },
     });
-    if (
-      user?.lastTimeForGotPassword &&
-      Date.now() - Number(user?.lastTimeForGotPassword) <
-        AUTHENTICATOR.RESET_PASSWORD
-    ) {
-      throw new HttpException(
-        this.util.buildCustomResponse(
-          2,
-          '',
-          'Please wait enough 1 day to reset password again',
-        ),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    // if (
+    //   user?.lastTimeForGotPassword &&
+    //   Date.now() - Number(user?.lastTimeForGotPassword) <
+    //     AUTHENTICATOR.RESET_PASSWORD
+    // ) {
+    //   throw new HttpException(
+    //     this.util.buildCustomResponse(
+    //       2,
+    //       '',
+    //       'Please wait enough 1 day to reset password again',
+    //     ),
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
     if (resetPassDto.newPassword !== resetPassDto.reNewPassword) {
       throw new HttpException(
         this.util.buildCustomResponse(3, '', 'Password not match'),
@@ -286,7 +286,7 @@ export class AuthService extends BaseService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const loanRs = await this.prismaService.user.update({
+    await this.prismaService.user.update({
       where: {
         id: resetPassDto.id,
       },
