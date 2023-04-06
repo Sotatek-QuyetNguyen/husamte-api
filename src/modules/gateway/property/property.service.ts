@@ -67,9 +67,9 @@ export class PropertyService extends BaseService {
 
   async updateProperty(data: UpdatePropertyDTO) {
     this.validateRoomInformation(data);
-    const property = this.prismaService.property.findFirst({ where: { id: data.id } });
+    const property = await this.prismaService.property.findFirst({ where: { id: data.id } });
     if (!property) {
-      throw new HttpException(`Property with id: ${data.id} not found`, HttpStatus.BAD_REQUEST);
+      throw new BadRequestException(`Property with id: ${data.id} not found`);
     }
     try {
       await this.prismaService.$transaction(async (transaction) => {
@@ -131,7 +131,7 @@ export class PropertyService extends BaseService {
     if (property) {
       return property;
     }
-    throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    throw new BadRequestException(`Property with id: ${id} not found`);
   }
 
   getPropertyIncludeQuery() {
@@ -156,11 +156,11 @@ export class PropertyService extends BaseService {
   validateRoomInformation(data: UpdatePropertyDTO) {
     if (data.bedroomCount &&
       data.bedroomCount !== data.rooms.filter((room) => { return room.type == ROOM_TYPE.BEDROOM }).length) {
-      throw new HttpException(`Bedroom information need equal with bedroomCount`, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new BadRequestException(`Bedroom information need equal with bedroomCount`);
     }
     if (data.bathroomCount &&
       data.bathroomCount !== data.rooms.filter((room) => { return room.type == ROOM_TYPE.BATHROOM }).length) {
-      throw new HttpException(`Bathroom information need equal with bedroomCount`, HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new BadRequestException(`Bathroom information need equal with bedroomCount`);
     }
     const otherRooms = Object.keys(data)
       .filter(key => key.includes('has'))
@@ -170,7 +170,7 @@ export class PropertyService extends BaseService {
       }, {});
     for (const roomName in otherRooms) {
       if (otherRooms[roomName] != data.rooms.filter((room) => { return room.type == ROOM_TYPE[roomName] }).length) {
-        throw new HttpException(`${roomName} information missing or redundancy`, HttpStatus.UNPROCESSABLE_ENTITY);
+        throw new BadRequestException(`${roomName} information missing or redundancy`);
       }
     }
   }
@@ -209,11 +209,8 @@ export class PropertyService extends BaseService {
       skip,
       take,
     })
-    if (result.length) {
-      const meta = await this.buildMetaData(take, where);
-      return { meta, data: result };
-    }
-    throw new HttpException('Not found', HttpStatus.NOT_FOUND);
+    const meta = await this.buildMetaData(take, where);
+    return { meta, data: result };
   }
 
   async deleteProperty(id: number) {
