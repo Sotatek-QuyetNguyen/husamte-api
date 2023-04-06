@@ -36,7 +36,7 @@ export const REDIS_EXPIRE_RESEND = {
 };
 
 export const FIELD_REQUIRED = 'This field is required';
-export const REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT = /^[0-9][0-9]*[.]?[1-9]{0,2}$/;
+export const REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT = /^[0-9][0-9]*[.]?[0-9]{0,2}$/;
 
 export const AUTHENTICATOR = {
   NUMBER_OF_LOOP: 0,
