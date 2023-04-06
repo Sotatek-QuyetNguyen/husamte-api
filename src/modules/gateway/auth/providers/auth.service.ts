@@ -112,7 +112,11 @@ export class AuthService extends BaseService {
         });
       }
       throw new HttpException(
-        this.util.buildCustomResponse(2, null, 'Incorrect password'),
+        this.util.buildCustomResponse(
+          2,
+          null,
+          "The password that you've entered is incorrect",
+        ),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -178,11 +182,7 @@ export class AuthService extends BaseService {
     });
     if (!user) {
       throw new HttpException(
-        this.util.buildCustomResponse(
-          1,
-          null,
-          'Please enter a valid email address',
-        ),
+        this.util.buildCustomResponse(1, null, 'Email not found'),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -259,30 +259,31 @@ export class AuthService extends BaseService {
     //     HttpStatus.BAD_REQUEST,
     //   );
     // }
-    if (resetPassDto.newPassword !== resetPassDto.reNewPassword) {
-      throw new HttpException(
-        this.util.buildCustomResponse(3, '', 'Password not match'),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (resetPassDto.newPassword !== resetPassDto.reNewPassword) {
-      throw new HttpException(
-        this.util.buildCustomResponse(3, '', 'Password not match'),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (!user) {
-      throw new HttpException(
-        this.util.buildCustomResponse(1, '', 'Not found user'),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
     const checkCodeRedis = await this.cacheService.getAsync(
       `${REDIS.PREFIX}:${REDIS.FORGOT_PASSWORD}:${user.email.toLowerCase()}`,
     );
     if (!checkCodeRedis || resetPassDto.code !== checkCodeRedis) {
       throw new HttpException(
         this.util.buildCustomResponse(2, '', 'OTP code is not valid'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (resetPassDto.newPassword !== resetPassDto.reNewPassword) {
+      throw new HttpException(
+        this.util.buildCustomResponse(3, '', 'Password do not match'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    // if (resetPassDto.newPassword !== resetPassDto.reNewPassword) {
+    //   throw new HttpException(
+    //     this.util.buildCustomResponse(3, '', 'Password not match'),
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
+    if (!user) {
+      throw new HttpException(
+        this.util.buildCustomResponse(1, '', 'Not found user'),
         HttpStatus.BAD_REQUEST,
       );
     }
