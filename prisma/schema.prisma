@@ -64,7 +64,7 @@ model Property {
   description           String?  @db.VarChar(1000)
   image                 String?  @db.VarChar(500)
   type                  Int?
-  acreage               Float?
+  acreage               String?  @db.VarChar(100)
   bedroomCount          Int      @map("bedroom_count") @default(0)
   bathroomCount         Int      @map("bathroom_count") @default(0)
   parkingSlot           Int      @map("parking_slot") @default(0)

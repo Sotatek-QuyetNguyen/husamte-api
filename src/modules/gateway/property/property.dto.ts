@@ -162,9 +162,10 @@ export class UpdatePropertyDTO {
     description: "Property's acreage, unit is ft",
     example: 120.5,
   })
-  @IsNumber()
-  @IsNotEmpty()
-  acreage: number;
+  @MaxLength(100, { message: MAXIMUM_LENGTH(100) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  acreage: string;
 
   @Max(20)
   @Min(0)
