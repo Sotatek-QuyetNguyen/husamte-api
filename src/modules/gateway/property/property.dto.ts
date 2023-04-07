@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
 import { IsBiggerThanZero } from "src/share/common/base.dto";
-import { FIELD_REQUIRED, REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT } from "src/share/common/constants";
+import { FIELD_REQUIRED, MAXIMUM_LENGTH, REGEX_INTERNATIONAL_PHONE_NUMBER, REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT } from "src/share/common/constants";
 import { order_by } from "src/share/dto/page-option-swagger.dto";
 import { AIR_CONDITIONING_TYPE, PROPERTY_BASEMENT, PROPERTY_EXTERNAL, PROPERTY_STATUS, PROPERTY_TYPE, ROOM_FEATURE, ROOM_TYPE } from "./property.const";
 
@@ -331,3 +331,128 @@ export class GetListPropertyDTO {
 }
 
 export class DeleteOnePeropertyDTO extends GetOnePropertyDTO {}
+
+export class PrimaryContactDTO {
+  @ApiProperty({
+    example: "Nathan",
+  })
+  @MaxLength(30, { message: MAXIMUM_LENGTH(30) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  firstName: string;
+
+  @ApiProperty({
+    example: "Nathan",
+  })
+  @MaxLength(30, { message: MAXIMUM_LENGTH(30) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  lastName: string;
+
+  @ApiProperty({
+    example: "+84 012 345 678",
+  })
+  @Matches(REGEX_INTERNATIONAL_PHONE_NUMBER, {
+    message: 'The phone number is an invalid International Phone Number.'
+  })
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+
+  @ApiProperty({
+    example: "email@email.com",
+  })
+  @IsEmail({} , { message: "Enter a valid email" })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  email: string;
+
+  @ApiProperty()
+  @MaxLength(100, { message: MAXIMUM_LENGTH(100) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  address: string;
+
+  @ApiProperty()
+  @MaxLength(25, { message: MAXIMUM_LENGTH(25) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  city: string;
+
+  @ApiProperty({
+    description: "Id of country",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Field countryId can only contain number.' })
+  @IsNotEmpty()
+  countryId: number;
+
+  @ApiProperty({
+    description: "Id of state",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Field stateId can only contain number.' })
+  @IsNotEmpty()
+  stateId: number;
+
+  @ApiProperty()
+  @MaxLength(25, { message: MAXIMUM_LENGTH(25) })
+  @IsString()
+  @IsNotEmpty({ message: FIELD_REQUIRED })
+  zipCode: string;
+}
+
+export class CreatePrimaryContactDTO extends PrimaryContactDTO {
+  @ApiProperty({
+    description: "Id of property",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Input can only contain number.' })
+  @IsNotEmpty()
+  propertyId: number;
+}
+
+export class UpdatePrimaryContactDTO extends PrimaryContactDTO {
+  @ApiProperty({
+    description: "Id of primary contact",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Input can only contain number.' })
+  @IsNotEmpty()
+  id: number;
+}
+
+export class GetPrimaryContactDTO {
+  @ApiProperty({
+    description: "Id of primary contact",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero('id', {
+    message: 'Value must be higher than 0.',
+  })
+  @Type(() => Number)
+  @IsInt({ message: 'Input can only contain number.' })
+  @IsNotEmpty()
+  id: number;
+}

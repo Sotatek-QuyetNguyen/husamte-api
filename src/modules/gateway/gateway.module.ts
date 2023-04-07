@@ -3,11 +3,13 @@ import { SocketService } from 'src/share/socket/socket.service';
 import { AuthModule } from './auth';
 import { PropertyModule } from './property/property.module';
 import { UserModule } from './user/user.module';
+import { CountryModule } from './country/country.module';
 @Module({
   imports: [
     UserModule,
     PropertyModule,
     AuthModule,
+    CountryModule,
   ],
   controllers: [],
   providers: [],

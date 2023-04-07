@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ReqUser } from "src/share/common/decorators";
 import { Payload } from "../auth";
 import { AdminGuard } from "../auth/guards/admin.guard";
-import { CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, UpdateOwnerDTO, UpdatePropertyDTO } from "./property.dto";
+import { CreatePrimaryContactDTO, CreatePropertyDTO, DeleteOnePeropertyDTO, GetListPropertyDTO, GetOnePropertyDTO, GetPrimaryContactDTO, UpdateOwnerDTO, UpdatePrimaryContactDTO, UpdatePropertyDTO } from "./property.dto";
 import { PropertyService } from "./property.service";
 import { ResponseUtils } from "src/share/utils/response.utils";
 
@@ -71,5 +71,35 @@ export class PropertyController {
     @Body() body: UpdateOwnerDTO
   ): Promise<any> {
     return ResponseUtils.buildSuccessResponse(await this.propertyService.updateOwner(body));
+  }
+
+  @Get('primary-contact')
+  @ApiOperation({ summary: `Get primary contact` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async getPrimaryContact(
+    @Query() params: GetPrimaryContactDTO
+  ): Promise<any> {
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.getPrimaryContact(params.id));
+  }
+
+  @Post('primary-contact')
+  @ApiOperation({ summary: `Create primary contact for SPV` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async createPrimaryContact(
+    @Body() body: CreatePrimaryContactDTO
+  ): Promise<any> {
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.createPrimaryContact(body));
+  }
+
+  @Put('primary-contact')
+  @ApiOperation({ summary: `Update primary contact` })
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  async updatePrimaryContact(
+    @Body() body: UpdatePrimaryContactDTO
+  ): Promise<any> {
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.updatePrimaryContact(body));
   }
 }

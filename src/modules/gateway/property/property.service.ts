@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BaseService } from 'src/share/common/base.service';
 import { PrismaService } from 'src/share/prisma/prisma.service';
 import { CrawlerConfigService } from 'src/share/configs/config.service';
-import { CreatePropertyDTO, GetListPropertyDTO, ownerDTO, UpdateOwnerDTO, UpdatePropertyDTO } from './property.dto';
+import { CreatePrimaryContactDTO, CreatePropertyDTO, GetListPropertyDTO, ownerDTO, UpdateOwnerDTO, UpdatePrimaryContactDTO, UpdatePropertyDTO } from './property.dto';
 import { PROPERTY_STATUS, ROOM_TYPE } from './property.const';
 import { order_by } from 'src/share/dto/page-option-swagger.dto';
 import { USER_ROLES } from 'src/share/common/constants';
@@ -244,5 +244,69 @@ export class PropertyService extends BaseService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
+  }
+
+  async getPropertyById(id: number): Promise<any> {
+    const property = await this.prismaService.property.findFirst({ where: { id } });
+    if (!property) {
+      throw new BadRequestException(`Property with id: ${id} not found`);
+    }
+    return property;
+  }
+
+  async createPrimaryContact(data: CreatePrimaryContactDTO) {
+    await this.validateCountryAndState(data.countryId, data.stateId);
+    const property = await this.getPropertyById(data.propertyId);
+    if (property.primaryContactId) {
+      throw new BadRequestException(`Property already have primary contact`);
+    }
+    try {
+      return await this.prismaService.$transaction(async (transaction) => {
+        delete data.propertyId;
+        const primaryContact = await transaction.primaryContact.create({ data });
+        await transaction.property.update({
+          where: { id: property.id },
+          data: { primaryContactId: primaryContact.id }
+        });
+        return primaryContact;
+      });
+    } catch (error) {
+      console.log("Error in create primary contact:", error);
+      throw new HttpException("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async validateCountryAndState(countryId: number, stateId: number) {
+    const country = await this.prismaService.country.findFirst({ where: { id: countryId } });
+    if (!country) {
+      throw new BadRequestException(`Country with id: ${countryId} does not exist`);
+    }
+    const state = await this.prismaService.state.findFirst({ where: { id: stateId } });
+    if (!state) {
+      throw new BadRequestException(`State with id: ${stateId} does not exist`);
+    }
+    if (state.countryId != countryId) {
+      throw new BadRequestException(`State does not included in country`);
+    }
+  }
+
+  async updatePrimaryContact(data: UpdatePrimaryContactDTO) {
+    await this.validateCountryAndState(data.countryId, data.stateId);
+    const primaryContactId = data.id;
+    await this.getPrimaryContact(primaryContactId);
+    delete data.id;
+    await this.prismaService.primaryContact.update({
+      where: { id: primaryContactId },
+      data
+    });
+    return await this.getPrimaryContact(primaryContactId);
+  }
+
+  async getPrimaryContact(id: number) {
+    const primaryContact = await this.prismaService.primaryContact.findFirst({ where: { id } });
+    if (!primaryContact) {
+      throw new BadRequestException(`Primary contact with id: ${id} not found`);
+    }
+    return primaryContact;
   }
 }

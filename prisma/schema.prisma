@@ -80,12 +80,14 @@ model Property {
   hasLaundry            Boolean  @map("has_laundry") @default(false)
   extras                String?  @db.VarChar(1000)
   status                Int      @default(0)
+  primaryContactId      Int?     @unique()
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @default(now()) @map("updated_at")
 
   user         User              @relation(fields: [createdBy], references: [id])
   owner        OwnerOfProperty[]
   room         Room[]
+  primaryContact PrimaryContact? @relation(fields: [primaryContactId], references: [id])
 
   @@map("properties")
 }
@@ -116,4 +118,44 @@ model Room {
   property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("rooms")
+}
+
+model PrimaryContact {
+  id              Int      @id @default(autoincrement())
+  firstName       String   @map("first_name") @db.VarChar(30)
+  lastName        String   @map("last_name") @db.VarChar(30)
+  phoneNumber     String?  @map("phone_number") @db.VarChar(20)
+  email           String
+  address         String   @db.VarChar(100)
+  city            String   @db.VarChar(25)
+  countryId       Int
+  stateId         Int
+  zipCode         String   @map("zip_code") @db.VarChar(10)
+
+  property        Property?
+  country         Country  @relation(fields: [countryId], references: [id])
+  state           State    @relation(fields: [stateId], references: [id])
+
+  @@map("primary_contacts")
+}
+
+model Country {
+  id              Int       @id
+  name            String
+
+  state           State[]
+  primaryContact  PrimaryContact[]
+
+  @@map("countries")
+}
+
+model State {
+  id              Int       @id
+  name            String
+  countryId       Int
+
+  country         Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  primaryContact  PrimaryContact[]
+
+  @@map("states")
 }
