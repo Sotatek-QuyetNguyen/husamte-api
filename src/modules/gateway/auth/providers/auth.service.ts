@@ -245,6 +245,12 @@ export class AuthService extends BaseService {
     const user = await this.prismaService.user.findFirst({
       where: { id: resetPassDto.id },
     });
+    if (!user) {
+      throw new HttpException(
+        this.util.buildCustomResponse(1, '', 'User not found'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     // if (
     //   user?.lastTimeForGotPassword &&
     //   Date.now() - Number(user?.lastTimeForGotPassword) <
@@ -281,12 +287,7 @@ export class AuthService extends BaseService {
     //     HttpStatus.BAD_REQUEST,
     //   );
     // }
-    if (!user) {
-      throw new HttpException(
-        this.util.buildCustomResponse(1, '', 'Not found user'),
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    
     await this.prismaService.user.update({
       where: {
         id: resetPassDto.id,

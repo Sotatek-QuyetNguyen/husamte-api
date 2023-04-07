@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsString,
   IsStrongPassword,
   Length,
@@ -54,12 +55,13 @@ export class ForgotPassword {
 
 export class ResetPasswordInput {
   @ApiProperty()
-  @IsNotEmpty({ message: 'Id is not null' })
+  @IsNotEmpty({ message: 'Id should not be empty' })
+  @IsNumber()
   public id!: number;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'OTP code is not null' })
+  @IsNotEmpty({ message: 'OTP should not be empty' })
   public code!: string;
 
   @ApiProperty()
@@ -72,10 +74,10 @@ export class ResetPasswordInput {
   public newPassword!: string;
 
   @ApiProperty()
-  @IsStrongPassword(undefined, {
-    message:
-      'Password must have at least 8 characters with 1 uppercase, 1 lowercase letter, 1 number and 1 special character',
-  })
+  // @IsStrongPassword(undefined, {
+  //   message:
+  //     'Password must have at least 8 characters with 1 uppercase, 1 lowercase letter, 1 number and 1 special character',
+  // })
   @IsString()
   @IsNotEmpty({ message: 'Please confirm password' })
   public reNewPassword!: string;
