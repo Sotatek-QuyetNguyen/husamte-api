@@ -7,11 +7,14 @@ import { CreatePrimaryContactDTO, CreatePropertyDTO, GetListPropertyDTO, ownerDT
 import { PROPERTY_STATUS, ROOM_TYPE } from './property.const';
 import { order_by } from 'src/share/dto/page-option-swagger.dto';
 import { USER_ROLES } from 'src/share/common/constants';
+import { FileService, UtilService } from 'src/share/common/providers';
 
 @Injectable()
 export class PropertyService extends BaseService {
   constructor(prismaService: PrismaService, configService: ConfigService,
-    private crawlerConfigService: CrawlerConfigService) {
+    private crawlerConfigService: CrawlerConfigService,
+    private readonly util: UtilService,
+    private readonly fileService: FileService) {
     super(prismaService, 'property', 'Property', configService);
   }
 
@@ -315,5 +318,301 @@ export class PropertyService extends BaseService {
       throw new BadRequestException(`Primary contact with id: ${id} not found`);
     }
     return primaryContact;
+  }
+
+   /* Upload list of document by formdata
+  @Param:
+  @Return: success
+  */
+  public async uploadDocument(
+    files: Express.Multer.File[],
+    folderNumber: string[],
+    id: string,
+    removeDocument: string[],
+    folderName: Array<string>,
+    user: string,
+    descriptionFolder: string[],
+    descriptionFile: Array<string>,
+    removeForder: string[],
+    documentIds: number[],
+    descriptionFileUpdate: string[],
+    isPublicDocument: number[],
+  ) {
+    console.log('abac', folderNumber, id, removeDocument, folderName);
+
+    for (let i = 0; i < files.length; i++) {
+      if (
+        ![
+          'png',
+          'jpg',
+          'jpeg',
+          'docx',
+          'doc',
+          'xls',
+          'excel',
+          'pdf',
+          'csv',
+          'xlsx',
+        ].includes(this.checkType(files[i].originalname.toLowerCase()))
+      ) {
+        throw new HttpException(
+          this.util.buildCustomResponse(
+            2,
+            '',
+            'You can upload only: pdf, word, excel, jpg, jpeg, png',
+          ),
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (files[i].size > 25000194) {
+        throw new HttpException(
+          this.util.buildCustomResponse(2, '', 'File must smaller than 25MB!'),
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+    const property = await this.prismaService.property.findFirst({
+      where: { id: Number(id) },
+    });
+    if (!property) {
+      throw new HttpException(
+        this.util.buildCustomResponse(2, '', 'Not found property'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const finalFolderName = String(folderName).split(',');
+    console.log('finalFolderName',finalFolderName)
+    
+    const finalDescriptionFolder = String(descriptionFolder).split(',');
+    const finalDescriptionFile = String(descriptionFile).split(',');
+    const finalDocumentIds: number[] =
+      documentIds && Array.isArray(documentIds)
+        ? documentIds
+        : [Number(documentIds)];
+    const finalDescriptionFileUpdate = String(descriptionFileUpdate).split(',');
+
+    const finalIsPublicDocument: number[] =
+      isPublicDocument && Array.isArray(isPublicDocument)
+        ? isPublicDocument
+        : [];
+    console.log('abcac-----', isPublicDocument);
+    if (removeDocument && removeDocument.length > 0) {
+      // await this.documentRepository.update(removeDocument, { is_active: false, deleted_at: new Date(Date.now()) });
+      // assetProfile.updated_at = new Date(Date.now());
+      // await this.assetProfileRepository.save(assetProfile);
+      await this.prismaService.$transaction(
+        removeDocument.map((tagId) =>
+          this.prismaService.document.update({
+            where: { id: parseInt(tagId) },
+            data: { is_active: false },
+          }),
+        ),
+      );
+    }
+    // if (isPublicDocument && isPublicDocument.length > 0) {
+    //   await this.documentRepository.update(isPublicDocument, { is_public: false});
+    // }
+    if (removeForder && removeForder.length > 0) {
+      // await this.folderRepository.update(removeForder, { is_active: false });
+      await this.prismaService.$transaction(
+        removeForder.map((tagId) =>
+          this.prismaService.folder.update({
+            where: { id: parseInt(tagId) },
+            data: {
+              is_active: false,
+            },
+          }),
+        ),
+      );
+
+      await this.prismaService.$transaction(
+        removeForder.map((tagId) =>
+          this.prismaService.document.updateMany({
+            where: { folderId: Number(tagId) },
+            data: {
+              is_active: false,
+            },
+          }),
+        ),
+      );
+
+      // if (!Array.isArray(removeForder)) {
+      //   await getConnection()
+      //     .createQueryBuilder()
+      //     .update(Document)
+      //     .set({
+      //       is_active: false,
+      //       deleted_at: new Date(Date.now()),
+      //     })
+      //     .where('folderId  = :removeForder', { removeForder: removeForder })
+      //     .execute();
+      // } else {
+      // await getConnection()
+      //   .createQueryBuilder()
+      //   .update(Document)
+      //   .set({
+      //     is_active: false,
+      //     deleted_at: new Date(Date.now()),
+      //   })
+      //   .where('folderId IN(:...removeForder)', {
+      //     removeForder: removeForder,
+      //   })
+      //   .execute();
+      // }
+
+      // await this.assetProfileRepository.save(assetProfile);
+    }
+    const oldFolderAsset = await this.prismaService.folder.findMany({
+      include: {
+        property: true,
+      },
+      where: {
+        propertyId: Number(id),
+        is_active: true,
+      },
+      orderBy: { number: 'asc' },
+    });
+
+    if (
+      finalFolderName &&
+      Array.isArray(finalFolderName) &&
+      finalFolderName.length > 0 &&
+      folderName &&
+      folderName.length > 0
+    ) {
+      for (let i = 0; i < finalFolderName.length; i++) {
+        console.log('folder description -----------', descriptionFolder[i]);
+        if (i < oldFolderAsset.length) {
+          oldFolderAsset[i].folderName = finalFolderName[i];
+          oldFolderAsset[i].number = i + 1;
+          oldFolderAsset[i].description = finalDescriptionFolder[i];
+        } else {
+          // create new
+          await this.prismaService.folder.create({
+            data: {
+              propertyId: Number(id),
+              number: i + 1,
+              folderName: finalFolderName[i],
+              description: finalDescriptionFolder[i],
+            },
+          });
+          // oldFolderAsset.push(newFolder);
+        }
+      }
+    }
+    if (oldFolderAsset.length > 0)
+      await this.prismaService.folder.createMany({ data: oldFolderAsset });
+    if (files && files.length > 0) {
+      console.log('dđ-----', files, user);
+      const documentsRaw = await this.fileService.uploadBufferFile(
+        files,
+        String(user),
+      );
+      // const filesDb = await this.fileRepository.findByIds(
+      //   documentsRaw.map((p: any) => p.id),
+      // );
+      // const filesDb = documentsRaw.map((tagId) =>
+      //   this.prismaService.folder.findMany({
+      //     where: { id: parseInt(tagId) },
+      //   }),
+      // );
+      const documents = [];
+      for (let i = 0; i < documentsRaw.length; i += 1) {
+        const document = {};
+
+        document['propertyId'] = property.id;
+        document['fileId'] = documentsRaw[i].id;
+        document['folderId'] = oldFolderAsset[Number(folderNumber[i]) - 1 || 0];
+        console.log(
+          'fileeeeeeeeeeeee description -----------',
+          descriptionFile[i],
+        );
+        document['description'] = finalDescriptionFile[i];
+        console.log('finalIsPublicDocument[i]---', isPublicDocument[i], i);
+        document['isPublic'] = Boolean(isPublicDocument[i]);
+        documents.push(document);
+      }
+      await this.prismaService.document.createMany({ data: documents });
+    }
+
+    if (
+      finalDocumentIds &&
+      finalDocumentIds.length > 0 &&
+      documentIds &&
+      documentIds.length > 0
+    ) {
+      for (let i = 0; i < finalDocumentIds.length; i++) {
+        // await this.documentRepository.update(finalDocumentIds[i], {
+        //   description: finalDescriptionFileUpdate[i],
+        //   is_public: Number(finalIsPublicDocument[i]),
+        // });
+        await this.prismaService.document.update({
+          where: { id: finalDocumentIds[i] },
+          data: {
+            description: finalDescriptionFileUpdate[i],
+            isPublic: Boolean(isPublicDocument[i]),
+          },
+        });
+      }
+    }
+
+    console.log('Upload document done');
+    // if (files && files.length > 0) {
+    //   if (!types) {
+    //     throw new HttpException(this.util.buildCustomResponse(1, '', 'Not valid type'), HttpStatus.BAD_REQUEST);
+    //   }
+    //   const documentsRaw = await this.fileService.uploadBufferFile(files, user);
+    //   const filesDb = await this.fileRepository.findByIds(documentsRaw.map((p: any) => p.id));
+    //   const documents: Array<Document> = [];
+    //   for (let i = 0; i < documentsRaw.length; i += 1) {
+    //     const document = new Document();
+    //     document.id = v4();
+    //     document.asset_profile = assetProfile;
+    //     if (Array.isArray(types)) {
+    //       document.document_type = documentType.find((documentTypeDb: DocumentType) => documentTypeDb.id === Number(types[i]));
+    //     } else document.document_type = documentType.find((documentTypeDb: DocumentType) => documentTypeDb.id === Number(types));
+    //     document.file = filesDb.find((fileDb: File) => fileDb.id === documentsRaw[i].id);
+    //     documents.push(document);
+    //   }
+    //   assetProfile.updated_at = new Date(Date.now());
+    //   await this.assetProfileRepository.save(assetProfile);
+    //   await this.documentRepository.save(documents);
+    // }
+    // if (updateDocument && updateDocument.length > 0) {
+    //   if (Array.isArray(updateDocument)) {
+    //     if (!updateType || updateType.length !== updateDocument.length) {
+    //       throw new HttpException(this.util.buildCustomResponse(1, '', 'Not valid type update'), HttpStatus.BAD_REQUEST);
+    //     }
+    //     const documents: Array<Document> = [];
+    //     for (let i = 0; i < updateDocument.length; i += 1) {
+    //       const document = await this.documentRepository.findOne({ id: updateDocument[i] });
+    //       if (!document) throw new HttpException(this.util.buildCustomResponse(4, '', 'Not found document'), HttpStatus.BAD_REQUEST);
+    //       document.document_type = documentType.find((documentTypeDb: DocumentType) => documentTypeDb.id === Number(updateType[i]));
+    //       documents.push(document);
+    //     }
+    //     await this.documentRepository.save(documents);
+    //   } else {
+    //     if (!updateType) throw new HttpException(this.util.buildCustomResponse(7, '', 'Not valid type'), HttpStatus.BAD_REQUEST);
+    //     const document = await this.documentRepository.findOne({ id: updateDocument });
+    //     if (!document) throw new HttpException(this.util.buildCustomResponse(4, '', 'Not found document'), HttpStatus.BAD_REQUEST);
+    //     document.document_type = documentType.find((documentTypeDb: DocumentType) => documentTypeDb.id === Number(updateType[0]));
+    //     await this.documentRepository.save(document);
+    //   }
+    //   assetProfile.updated_at = new Date(Date.now());
+    //   await this.assetProfileRepository.save(assetProfile);
+    // }
+    // if (removeDocument && removeDocument.length > 0) {
+    //   await this.documentRepository.update(removeDocument, { is_active: false });
+    //   assetProfile.updated_at = new Date(Date.now());
+    //   await this.assetProfileRepository.save(assetProfile);
+    // }
+    return null;
+  }
+
+  public checkType(name: string): string {
+    if (!name) return '';
+    const arr = name.split('.');
+    const type = arr[arr.length - 1];
+    return type;
   }
 }
