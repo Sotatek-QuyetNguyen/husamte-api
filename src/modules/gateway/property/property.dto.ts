@@ -232,7 +232,7 @@ export class UpdatePropertyDTO {
   @ValidateNested({ each: true })
   @IsArray()
   @IsOptional()
-  rooms: RoomDTO[]
+  room: RoomDTO[]
 }
 
 export class RoomDTO {

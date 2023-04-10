@@ -77,7 +77,7 @@ export class PropertyService extends BaseService {
     try {
       await this.prismaService.$transaction(async (transaction) => {
         await this.updatePropertyProfile(data, transaction);
-        await this.createRooms(data.id, data.rooms, transaction);
+        await this.createRooms(data.id, data.room, transaction);
       });
       return await this.getProperty(data.id);
     } catch (error) {
@@ -89,7 +89,7 @@ export class PropertyService extends BaseService {
     const id = data.id;
     let clonedData = Object.assign({}, data);
     delete clonedData.id;
-    delete clonedData.rooms;
+    delete clonedData.room;
     await transaction.property.update({
       where: { id: id },
       data: clonedData
@@ -158,11 +158,11 @@ export class PropertyService extends BaseService {
 
   validateRoomInformation(data: UpdatePropertyDTO) {
     if (data.bedroomCount &&
-      data.bedroomCount !== data.rooms.filter((room) => { return room.type == ROOM_TYPE.BEDROOM }).length) {
+      data.bedroomCount !== data.room.filter((room) => { return room.type == ROOM_TYPE.BEDROOM }).length) {
       throw new BadRequestException(`Bedroom information need equal with bedroomCount`);
     }
     if (data.bathroomCount &&
-      data.bathroomCount !== data.rooms.filter((room) => { return room.type == ROOM_TYPE.BATHROOM }).length) {
+      data.bathroomCount !== data.room.filter((room) => { return room.type == ROOM_TYPE.BATHROOM }).length) {
       throw new BadRequestException(`Bathroom information need equal with bedroomCount`);
     }
     const otherRooms = Object.keys(data)
@@ -172,7 +172,7 @@ export class PropertyService extends BaseService {
         return obj;
       }, {});
     for (const roomName in otherRooms) {
-      if (otherRooms[roomName] != data.rooms.filter((room) => { return room.type == ROOM_TYPE[roomName] }).length) {
+      if (otherRooms[roomName] != data.room.filter((room) => { return room.type == ROOM_TYPE[roomName] }).length) {
         throw new BadRequestException(`${roomName} information missing or redundancy`);
       }
     }
