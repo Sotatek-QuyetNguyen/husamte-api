@@ -54,7 +54,10 @@ export class ValidationExceptionFilter implements ExceptionFilter<BadRequestExce
     if (typeof exceptionResponse === 'object' && exceptionResponse['message']) {
       responseData = { message: exceptionResponse['message'] }
     }
-    const message = Object.values(responseData)[0];
+    let message = Object.values(responseData)[0];
+    if (message) {
+      message = message.charAt(0).toUpperCase() + message.slice(1);
+    }
     response
       .status(HttpStatus.BAD_REQUEST)
       .json(ResponseUtils.buildCustomResponse(1, {}, message))

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty } from "class-validator";
-import { IsBiggerThanZero } from "src/share/common/base.dto";
+import { IsInt } from "class-validator";
+import { IsBiggerThanZero, RequiredField } from "src/share/common/base.dto";
 
 export class GetAllStateOfCountryDTO {
   @ApiProperty({
@@ -9,11 +9,9 @@ export class GetAllStateOfCountryDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsInt({ message: "Invalid id format" })
+  @RequiredField()
   id: number;
 }

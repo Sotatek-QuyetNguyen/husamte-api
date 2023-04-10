@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
-import { IsBiggerThanZero } from "src/share/common/base.dto";
-import { FIELD_REQUIRED, MAXIMUM_LENGTH, REGEX_INTERNATIONAL_PHONE_NUMBER, REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT } from "src/share/common/constants";
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEmail, IsEnum, IsIn, IsInt, IsNumber, IsNumberString, IsOptional, IsString, Matches, Max, MaxLength, Min, registerDecorator, ValidateNested, ValidationArguments, ValidationOptions } from "class-validator";
+import { IsBiggerThanZero, IsIntCustom, IsSmallerThan100, RequiredField } from "src/share/common/base.dto";
+import { MAXIMUM_LENGTH, REGEX_INTERNATIONAL_PHONE_NUMBER, REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT } from "src/share/common/constants";
 import { order_by } from "src/share/dto/page-option-swagger.dto";
 import { AIR_CONDITIONING_TYPE, PROPERTY_BASEMENT, PROPERTY_EXTERNAL, PROPERTY_STATUS, PROPERTY_TYPE, ROOM_FEATURE, ROOM_TYPE } from "./property.const";
 
@@ -57,12 +57,10 @@ export class ownerDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('userId', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   userId: number;
 
   @ApiProperty({
@@ -70,14 +68,13 @@ export class ownerDTO {
     required: true,
     example: 30,
   })
-  @IsBiggerThanZeroAndSmallerThan100('percentage', {
-    message: 'percentage must be bigger than 0 and smaller than 100'
-  })
+  @IsBiggerThanZero()
+  @IsSmallerThan100()
   @Matches(REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT, {
-    message: 'percentage must be a number and have max 2 digits after decimal'
+    message: 'Invalid owner percentage format'
   })
-  @IsNumberString()
-  @IsNotEmpty()
+  @IsNumberString({}, { message: "Invalid owner percentage format" })
+  @RequiredField()
   percentage: number;
 }
 
@@ -90,7 +87,7 @@ export class CreatePropertyDTO {
   @ArrayMaxSize(2)
   @Type(() => ownerDTO)
   @IsArray()
-  @IsNotEmpty()
+  @RequiredField()
   owners: ownerDTO[];
 }
 
@@ -100,12 +97,10 @@ export class UpdateOwnerDTO extends CreatePropertyDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   id: number;
 }
 
@@ -115,30 +110,28 @@ export class UpdatePropertyDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   id: number;
 
   @ApiProperty({
     description: "Name of property",
     example: "EcoCity",
   })
-  @MaxLength(100, { message: 'Maximum 100 characters.' })
+  @MaxLength(100, { message: MAXIMUM_LENGTH(100) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   name: string;
 
   @ApiProperty({
     description: "Description",
     example: "Description",
   })
-  @MaxLength(1000, { message: 'Maximum 1000 characters' })
+  @MaxLength(1000, { message: MAXIMUM_LENGTH(1000) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   description: string;
 
   @ApiProperty({
@@ -146,7 +139,7 @@ export class UpdatePropertyDTO {
     example: "https://image.com",
   })
   @IsString()
-  @IsNotEmpty()
+  @RequiredField()
   image: string;
 
   @ApiProperty({
@@ -154,8 +147,8 @@ export class UpdatePropertyDTO {
     example: 1,
   })
   @IsIn(Object.values(PROPERTY_TYPE))
-  @IsInt()
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   type: number;
 
   @ApiProperty({
@@ -164,70 +157,70 @@ export class UpdatePropertyDTO {
   })
   @MaxLength(100, { message: MAXIMUM_LENGTH(100) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   acreage: string;
 
   @Max(20)
   @Min(0)
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   bedroomCount: number;
 
   @Max(20)
   @Min(0)
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   bathroomCount: number;
 
   @Min(0)
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   parkingSlot: number;
 
   @IsIn(Object.values(AIR_CONDITIONING_TYPE))
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   airConditioningType: number;
 
   @IsIn(Object.values(PROPERTY_EXTERNAL))
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   external: number;
 
   @IsIn(Object.values(PROPERTY_BASEMENT))
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   basement: number;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasKitchen: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasFoyer: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasBreakfast: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasLivingroom: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasDiningroom: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasFamilyroom: boolean;
 
   @IsBoolean()
-  @IsNotEmpty()
+  @RequiredField()
   hasLaundry: boolean;
 
-  @MaxLength(1000, { message: 'Maximum 1000 characters' })
+  @MaxLength(1000, { message: MAXIMUM_LENGTH(1000) })
   @IsString()
   @IsOptional()
   extras: string;
@@ -248,26 +241,22 @@ export class RoomDTO {
     example: ROOM_TYPE.BEDROOM,
   })
   @IsNumber()
-  @IsNotEmpty()
+  @RequiredField()
   type: number;
 
-  @Matches(REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT, {
-    message: 'Length must be a number and have max 2 digits after decimal'
-  })
-  @IsNumberString()
-  @IsNotEmpty()
+  @Matches(REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT, { message: 'Invalid room length format' })
+  @IsNumberString({}, { message: 'Invalid room length format' })
+  @RequiredField()
   length: number;
 
   @Matches(REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT, {
-    message: 'Width must be a number and have max 2 digits after decimal'
+    message: 'Invalid room width format'
   })
-  @IsNumberString()
-  @IsNotEmpty()
+  @IsNumberString({}, { message: 'Invalid room width format' })
+  @RequiredField()
   width: number;
 
-  @IsCorrectRoomFeature('feature', {
-    message: 'Room feature invalid'
-  })
+  @IsCorrectRoomFeature('feature', { message: 'Room feature invalid' })
   @IsArray()
   @IsOptional()
   feature: number[];
@@ -279,12 +268,10 @@ export class GetOnePropertyDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   id: number;
 }
 
@@ -305,7 +292,7 @@ export class GetListPropertyDTO {
   })
   @Type(() => Number)
   @Min(0)
-  @IsInt()
+  @IsIntCustom()
   @IsOptional()
   readonly page?: number = 0;
 
@@ -315,13 +302,13 @@ export class GetListPropertyDTO {
   })
   @Type(() => Number)
   @Min(0)
-  @IsInt()
+  @IsIntCustom()
   @IsOptional()
   readonly size?: number = 9;
 
   @Type(() => Number)
   @IsIn(Object.values(PROPERTY_STATUS))
-  @IsInt()
+  @IsIntCustom()
   @IsOptional()
   filterStatus: number
 
@@ -339,7 +326,7 @@ export class PrimaryContactDTO {
   })
   @MaxLength(30, { message: MAXIMUM_LENGTH(30) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   firstName: string;
 
   @ApiProperty({
@@ -347,7 +334,7 @@ export class PrimaryContactDTO {
   })
   @MaxLength(30, { message: MAXIMUM_LENGTH(30) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   lastName: string;
 
   @ApiProperty({
@@ -365,19 +352,19 @@ export class PrimaryContactDTO {
   })
   @IsEmail({} , { message: "Enter a valid email" })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   email: string;
 
   @ApiProperty()
   @MaxLength(100, { message: MAXIMUM_LENGTH(100) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   address: string;
 
   @ApiProperty()
   @MaxLength(25, { message: MAXIMUM_LENGTH(25) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   city: string;
 
   @ApiProperty({
@@ -385,12 +372,10 @@ export class PrimaryContactDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Field countryId can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   countryId: number;
 
   @ApiProperty({
@@ -398,18 +383,16 @@ export class PrimaryContactDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Field stateId can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   stateId: number;
 
   @ApiProperty()
   @MaxLength(25, { message: MAXIMUM_LENGTH(25) })
   @IsString()
-  @IsNotEmpty({ message: FIELD_REQUIRED })
+  @RequiredField()
   zipCode: string;
 }
 
@@ -419,12 +402,10 @@ export class CreatePrimaryContactDTO extends PrimaryContactDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   propertyId: number;
 }
 
@@ -434,12 +415,10 @@ export class UpdatePrimaryContactDTO extends PrimaryContactDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   id: number;
 }
 
@@ -449,11 +428,9 @@ export class GetPrimaryContactDTO {
     required: true,
     example: 1,
   })
-  @IsBiggerThanZero('id', {
-    message: 'Value must be higher than 0.',
-  })
+  @IsBiggerThanZero()
   @Type(() => Number)
-  @IsInt({ message: 'Input can only contain number.' })
-  @IsNotEmpty()
+  @IsIntCustom()
+  @RequiredField()
   id: number;
 }

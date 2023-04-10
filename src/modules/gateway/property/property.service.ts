@@ -51,7 +51,7 @@ export class PropertyService extends BaseService {
       sumPercentage += Number(owner.percentage);
     }
     if (sumPercentage != 100) {
-      throw new BadRequestException(`Total percentage must be equal 100%`);
+      throw new BadRequestException(`Total percentage must be 100`);
     }
   }
 
@@ -187,12 +187,10 @@ export class PropertyService extends BaseService {
     }
     if (params.search != undefined) {
       where['OR'] = [
-        {
-          name: { contains: params.search },
-        },
-        {
-          description: { contains: params.search }
-        },
+        { name: { contains: params.search } },
+        { description: { contains: params.search } },
+        { owner: { some: { user: { name: { contains: params.search } } } } },
+        { owner: { some: { user: { email: { contains: params.search } } } } },
       ];
     }
     if (params.order_by != undefined && params.sort_by != undefined) {
@@ -202,18 +200,27 @@ export class PropertyService extends BaseService {
     }
     const take = params.size;
     const skip = Math.max(Math.max(params.page - 1, 0) * take, 0);
-    const result = await this.prismaService.property.findMany({
+    let result = await this.prismaService.property.findMany({
       where,
       include: this.getPropertyIncludeQuery(),
       orderBy,
       skip,
       take,
-    })
+    });
+    result.map(property => {
+      if (property?.room !== undefined && property?.room.length) {
+        property.room.map((room: any) => {
+          room.feature = JSON.parse(room.feature)
+        });
+      }
+      return property;
+    });
     const meta = await this.buildMetaData(take, where);
     return { meta, data: result };
   }
 
   async deleteProperty(id: number) {
+    await this.getPropertyById(id);
     try {
       await this.prismaService.property.update({
         where: { id },

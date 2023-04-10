@@ -35,10 +35,9 @@ export const REDIS_EXPIRE_RESEND = {
   ENABLE_2FA: 6,
 };
 
-export const FIELD_REQUIRED = 'This field is required';
 export const REGEX_ONLY_NUMBER_MAX_2_AFTER_DOT = /^[0-9][0-9]*[.]?[0-9]{0,2}$/;
 export const REGEX_INTERNATIONAL_PHONE_NUMBER = /^\+(?:[0-9] ?){6,14}[0-9]$/;
-export const MAXIMUM_LENGTH = (length: number) => { return `The maximum length is ${length} characters.` };
+export const MAXIMUM_LENGTH = (length: number) => { return `Maximum ${length} characters` };
 
 export const AUTHENTICATOR = {
   NUMBER_OF_LOOP: 0,
