@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Post, Put, Query, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Post, Put, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ReqUser } from "src/share/common/decorators";
 import { Payload } from "../auth";
 import { AdminGuard } from "../auth/guards/admin.guard";
@@ -101,5 +102,99 @@ export class PropertyController {
     @Body() body: UpdatePrimaryContactDTO
   ): Promise<any> {
     return ResponseUtils.buildSuccessResponse(await this.propertyService.updatePrimaryContact(body));
+  }
+
+  /* Create document
+  @Param: folder_number, id, remove_document, folder_name, description_folder, description_file, remove_forder, description_file_update
+  @Return: success
+  */
+  @ApiBearerAuth()
+  @UseGuards(AdminGuard)
+  @Post('document')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        folderNumber: {
+          type: 'array',
+          items: { type: 'number', format: 'number' },
+        },
+        id: { type: 'number' },
+        removeDocument: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        folderName: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        descriptionFolder: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        descriptionFile: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        removeForder: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        documentIds: {
+          type: 'array',
+          items: { type: 'number', format: 'number' },
+        },
+        descriptionFileUpdate: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        isPublicDocument: {
+          type: 'array',
+          items: { type: 'string', format: 'string' },
+        },
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  public async uploadDocument(
+    @UploadedFiles() files,
+    @Body('folderNumber') folderNumber,
+    @Body('id') id,
+    @Body('removeDocument') removeDocument,
+    @Body('folderName') folderName,
+    @Body('descriptionFolder') descriptionFolder,
+    @Body('descriptionFile') descriptionFile,
+    @Body('removeForder') removeForder,
+    @Body('documentIds') documentIds,
+    @Body('descriptionFileUpdate') descriptionFileUpdate,
+    @Body('isPublicDocument') isPublicDocument,
+
+    //@Body() updateFile: UpdateDocumentDTO,
+    @ReqUser() user: Payload,
+  ) :Promise<any>{
+    console.log('abbbb', files);
+
+    return this.propertyService.uploadDocument(
+      files,
+      folderNumber,
+      id,
+      removeDocument,
+      folderName,
+      user.userId,
+      descriptionFolder,
+      descriptionFile,
+      removeForder,
+      documentIds,
+      descriptionFileUpdate,
+      isPublicDocument,
+    );
   }
 }

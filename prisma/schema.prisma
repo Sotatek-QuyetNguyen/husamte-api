@@ -28,22 +28,24 @@ model CrawlerConfig {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique @db.VarChar(100)
-  password      String    @db.VarChar(256)
-  name          String?   @db.VarChar(100)
-  dateOfBirth   DateTime  @db.Date()
-  status        Int       @default(1)
-  role          Int       @default(0)
-  address       String?   @db.VarChar(256)
-  secretKey     String?   @db.VarChar(500)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  lastTimeForGotPassword  DateTime? @map("last_time_forgot_password") @db.Date()
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique @db.VarChar(100)
+  password               String    @db.VarChar(256)
+  name                   String?   @db.VarChar(100)
+  dateOfBirth            DateTime  @db.Date()
+  status                 Int       @default(1)
+  role                   Int       @default(0)
+  address                String?   @db.VarChar(256)
+  secretKey              String?   @db.VarChar(500)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @default(now()) @updatedAt
+  lastTimeForGotPassword DateTime? @map("last_time_forgot_password") @db.Date()
 
-  tokens        TokenOfUser[]
-  properties    Property[]
-  owned         OwnerOfProperty[]
+  tokens     TokenOfUser[]
+  properties Property[]
+  owned      OwnerOfProperty[]
+  File       File[]
+
   @@map("users")
 }
 
@@ -58,104 +60,165 @@ model TokenOfUser {
 }
 
 model Property {
-  id                    Int      @id @default(autoincrement())
-  createdBy             Int      @map("created_by")
-  name                  String?  @map("asset_name") @db.VarChar(100)
-  description           String?  @db.VarChar(1000)
-  image                 String?  @db.VarChar(500)
-  type                  Int?
-  acreage               String?  @db.VarChar(100)
-  bedroomCount          Int      @map("bedroom_count") @default(0)
-  bathroomCount         Int      @map("bathroom_count") @default(0)
-  parkingSlot           Int      @map("parking_slot") @default(0)
-  airConditioningType   Int?     @map("air_conditioning_type")
-  external              Int?
-  basement              Int?
-  hasKitchen            Boolean  @map("has_kitchen") @default(false)
-  hasFoyer              Boolean  @map("has_foyer") @default(false)
-  hasBreakfast          Boolean  @map("has_breakfast") @default(false)
-  hasLivingroom         Boolean  @map("has_livingroom") @default(false)
-  hasDiningroom         Boolean  @map("has_diningroom") @default(false)
-  hasFamilyroom         Boolean  @map("has_familyroom") @default(false)
-  hasLaundry            Boolean  @map("has_laundry") @default(false)
-  extras                String?  @db.VarChar(1000)
-  status                Int      @default(0)
-  primaryContactId      Int?     @unique()
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @default(now()) @map("updated_at")
+  id                  Int      @id @default(autoincrement())
+  createdBy           Int      @map("created_by")
+  name                String?  @map("asset_name") @db.VarChar(100)
+  description         String?  @db.VarChar(1000)
+  image               String?  @db.VarChar(500)
+  type                Int?
+  acreage             String?  @db.VarChar(100)
+  bedroomCount        Int      @default(0) @map("bedroom_count")
+  bathroomCount       Int      @default(0) @map("bathroom_count")
+  parkingSlot         Int      @default(0) @map("parking_slot")
+  airConditioningType Int?     @map("air_conditioning_type")
+  external            Int?
+  basement            Int?
+  hasKitchen          Boolean  @default(false) @map("has_kitchen")
+  hasFoyer            Boolean  @default(false) @map("has_foyer")
+  hasBreakfast        Boolean  @default(false) @map("has_breakfast")
+  hasLivingroom       Boolean  @default(false) @map("has_livingroom")
+  hasDiningroom       Boolean  @default(false) @map("has_diningroom")
+  hasFamilyroom       Boolean  @default(false) @map("has_familyroom")
+  hasLaundry          Boolean  @default(false) @map("has_laundry")
+  extras              String?  @db.VarChar(1000)
+  status              Int      @default(0)
+  primaryContactId    Int?     @unique()
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @default(now()) @map("updated_at")
 
-  user         User              @relation(fields: [createdBy], references: [id])
-  owner        OwnerOfProperty[]
-  room         Room[]
-  primaryContact PrimaryContact? @relation(fields: [primaryContactId], references: [id])
+  user           User              @relation(fields: [createdBy], references: [id])
+  owner          OwnerOfProperty[]
+  room           Room[]
+  primaryContact PrimaryContact?   @relation(fields: [primaryContactId], references: [id])
+  Document       Document[]
+  Folder         Folder[]
 
   @@map("properties")
 }
 
 model OwnerOfProperty {
-  propertyId     Int
-  userId         Int
-  percentage     Float
-  createdAt      DateTime @default(now()) @map("created_at")
+  propertyId Int
+  userId     Int
+  percentage Float
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@id([propertyId, userId])
   @@map("owner_of_property")
 }
 
 model Room {
-  id              Int      @id @default(autoincrement())
-  type            Int
-  propertyId      Int
-  length          Float?
-  width           Float?
-  feature         String?
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @map("updated_at")
+  id         Int      @id @default(autoincrement())
+  type       Int
+  propertyId Int
+  length     Float?
+  width      Float?
+  feature    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
 
-  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("rooms")
 }
 
 model PrimaryContact {
-  id              Int      @id @default(autoincrement())
-  firstName       String   @map("first_name") @db.VarChar(30)
-  lastName        String   @map("last_name") @db.VarChar(30)
-  phoneNumber     String?  @map("phone_number") @db.VarChar(20)
-  email           String
-  address         String   @db.VarChar(100)
-  city            String   @db.VarChar(25)
-  countryId       Int
-  stateId         Int
-  zipCode         String   @map("zip_code") @db.VarChar(10)
+  id          Int     @id @default(autoincrement())
+  firstName   String  @map("first_name") @db.VarChar(30)
+  lastName    String  @map("last_name") @db.VarChar(30)
+  phoneNumber String? @map("phone_number") @db.VarChar(20)
+  email       String
+  address     String  @db.VarChar(100)
+  city        String  @db.VarChar(25)
+  countryId   Int
+  stateId     Int
+  zipCode     String  @map("zip_code") @db.VarChar(10)
 
-  property        Property?
-  country         Country  @relation(fields: [countryId], references: [id])
-  state           State    @relation(fields: [stateId], references: [id])
+  property Property?
+  country  Country   @relation(fields: [countryId], references: [id])
+  state    State     @relation(fields: [stateId], references: [id])
 
   @@map("primary_contacts")
 }
 
 model Country {
-  id              Int       @id
-  name            String
+  id   Int    @id
+  name String
 
-  state           State[]
-  primaryContact  PrimaryContact[]
+  state          State[]
+  primaryContact PrimaryContact[]
 
   @@map("countries")
 }
 
 model State {
-  id              Int       @id
-  name            String
-  countryId       Int
+  id        Int    @id
+  name      String
+  countryId Int
 
-  country         Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  primaryContact  PrimaryContact[]
+  country        Country          @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  primaryContact PrimaryContact[]
 
   @@map("states")
+}
+
+model File {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  originalName String?
+  mimetype     String?
+  filename     String?
+  path         String?
+  size         Int?
+  isPublic     Boolean?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Document Document?
+
+  @@map("file")
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  propertyId  Int
+  is_active   Boolean?
+  description String?
+
+  isPublic Boolean?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Folder   Folder?  @relation(fields: [folderId], references: [id])
+  folderId Int?
+
+  File   File @relation(fields: [fileId], references: [id])
+  fileId Int  @unique
+
+  @@map("document")
+}
+
+model Folder {
+  id          Int      @id @default(autoincrement())
+  propertyId  Int
+  number      Int?
+  folderName  String?
+  filename    String?
+  isPublic    Boolean?
+  size        Int?
+  description String?
+  is_active   Boolean?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  property Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  Document Document[]
+
+  @@map("folder")
 }
