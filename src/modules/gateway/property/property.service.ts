@@ -8,6 +8,9 @@ import { PROPERTY_STATUS, ROOM_TYPE } from './property.const';
 import { order_by } from 'src/share/dto/page-option-swagger.dto';
 import { USER_ROLES } from 'src/share/common/constants';
 import { FileService, UtilService } from 'src/share/common/providers';
+import { Payload } from '../auth';
+import { throws } from 'assert';
+import { ResponseUtils } from 'src/share/utils/response.utils';
 
 @Injectable()
 export class PropertyService extends BaseService {
@@ -17,7 +20,7 @@ export class PropertyService extends BaseService {
     private readonly fileService: FileService) {
     super(prismaService, 'property', 'Property', configService);
   }
-
+  private FILE_URL: string = process.env['API_FILE_URL'] ? process.env['API_FILE_URL'] : 'http://172.16.1.224:8354';
   async createProperty(data: CreatePropertyDTO, adminId: number): Promise<any> {
     await this.validateOwners(data.owners);
     this.validatePercentage(data.owners);
@@ -327,8 +330,8 @@ export class PropertyService extends BaseService {
   public async uploadDocument(
     files: Express.Multer.File[],
     folderNumber: string[],
-    id: string,
-    removeDocument: string[],
+    id: number,
+    removeDocument: number[],
     folderName: Array<string>,
     user: string,
     descriptionFolder: string[],
@@ -337,7 +340,7 @@ export class PropertyService extends BaseService {
     documentIds: number[],
     descriptionFileUpdate: string[],
     isPublicDocument: number[],
-  ) {
+  ):Promise<any> {
     console.log('abac', folderNumber, id, removeDocument, folderName);
 
     for (let i = 0; i < files.length; i++) {
@@ -371,6 +374,12 @@ export class PropertyService extends BaseService {
         );
       }
     }
+    console.log(isNaN(id),"ddddddd")
+    if(isNaN(id) )
+      throw new HttpException(
+        this.util.buildCustomResponse(2, '', 'Id must be an integer number'),
+        HttpStatus.BAD_REQUEST,
+      );
     const property = await this.prismaService.property.findFirst({
       where: { id: Number(id) },
     });
@@ -400,67 +409,53 @@ export class PropertyService extends BaseService {
       // await this.documentRepository.update(removeDocument, { is_active: false, deleted_at: new Date(Date.now()) });
       // assetProfile.updated_at = new Date(Date.now());
       // await this.assetProfileRepository.save(assetProfile);
-      await this.prismaService.$transaction(
-        removeDocument.map((tagId) =>
-          this.prismaService.document.update({
-            where: { id: parseInt(tagId) },
-            data: { is_active: false },
-          }),
-        ),
-      );
+      console.log(removeDocument);
+      // await this.prismaService.$transaction(
+      //   removeDocument.map((tagId) =>
+      //     this.prismaService.document.update({
+      //       where: { id: parseInt(tagId) },
+      //       data: { is_active: false },
+      //     }),
+      //   ),
+      // );
+      await this.prismaService.$transaction(async (transaction) => {
+        for (let id of removeDocument) {
+          await this.prismaService.document.update({where: { id: Number(id) },data: { is_active: false }})
+          console.log(id,"abbbbbbbbb")
+        }
+      });
     }
     // if (isPublicDocument && isPublicDocument.length > 0) {
     //   await this.documentRepository.update(isPublicDocument, { is_public: false});
     // }
     if (removeForder && removeForder.length > 0) {
-      // await this.folderRepository.update(removeForder, { is_active: false });
-      await this.prismaService.$transaction(
-        removeForder.map((tagId) =>
-          this.prismaService.folder.update({
-            where: { id: parseInt(tagId) },
-            data: {
-              is_active: false,
-            },
-          }),
-        ),
-      );
 
-      await this.prismaService.$transaction(
-        removeForder.map((tagId) =>
-          this.prismaService.document.updateMany({
-            where: { folderId: Number(tagId) },
-            data: {
-              is_active: false,
-            },
-          }),
-        ),
-      );
+      await this.prismaService.$transaction(async (transaction) => {
+        for (let id of removeForder) {
+          await this.prismaService.folder.update({where: { id: Number(id) },data: { is_active: false }})
+          console.log(id,"abbbbbbbbb")
+        }
+      });
 
-      // if (!Array.isArray(removeForder)) {
-      //   await getConnection()
-      //     .createQueryBuilder()
-      //     .update(Document)
-      //     .set({
-      //       is_active: false,
-      //       deleted_at: new Date(Date.now()),
-      //     })
-      //     .where('folderId  = :removeForder', { removeForder: removeForder })
-      //     .execute();
-      // } else {
-      // await getConnection()
-      //   .createQueryBuilder()
-      //   .update(Document)
-      //   .set({
-      //     is_active: false,
-      //     deleted_at: new Date(Date.now()),
-      //   })
-      //   .where('folderId IN(:...removeForder)', {
-      //     removeForder: removeForder,
-      //   })
-      //   .execute();
-      // }
+      // await this.prismaService.$transaction(
+      //   removeForder.map((tagId) =>
+      //     this.prismaService.document.updateMany({
+      //       where: { folderId: Number(tagId) },
+      //       data: {
+      //         is_active: false,
+      //       },
+      //     }),
+      //   ),
+      // );
 
-      // await this.assetProfileRepository.save(assetProfile);
+      await this.prismaService.$transaction(async (transaction) => {
+        for (let id of removeForder) {
+          await this.prismaService.document.updateMany({where: { folderId: Number(id) },data: { is_active: false }})
+          console.log(id,"abbbbbbbbb")
+        }
+      });
+
+     
     }
     const oldFolderAsset = await this.prismaService.folder.findMany({
       include: {
@@ -483,12 +478,17 @@ export class PropertyService extends BaseService {
       for (let i = 0; i < finalFolderName.length; i++) {
         console.log('folder description -----------', descriptionFolder[i]);
         if (i < oldFolderAsset.length) {
-          oldFolderAsset[i].folderName = finalFolderName[i];
-          oldFolderAsset[i].number = i + 1;
-          oldFolderAsset[i].description = finalDescriptionFolder[i];
+          await this.prismaService.folder.update({where:{
+            id: oldFolderAsset[i].id
+          },
+        data:{
+          folderName: finalFolderName[i],
+          number: i+1,
+          description: finalDescriptionFolder[i],
+        }})
         } else {
           // create new
-          await this.prismaService.folder.create({
+          const newFolder: any = await this.prismaService.folder.create({
             data: {
               propertyId: Number(id),
               number: i + 1,
@@ -496,12 +496,12 @@ export class PropertyService extends BaseService {
               description: finalDescriptionFolder[i],
             },
           });
-          // oldFolderAsset.push(newFolder);
+          oldFolderAsset.push(newFolder);
         }
       }
     }
-    if (oldFolderAsset.length > 0)
-      await this.prismaService.folder.createMany({ data: oldFolderAsset });
+    // if (oldFolderAsset.length > 0)
+    //   await this.prismaService.folder.createMany({ data: oldFolderAsset });
     if (files && files.length > 0) {
       console.log('dđ-----', files, user);
       const documentsRaw = await this.fileService.uploadBufferFile(
@@ -522,7 +522,7 @@ export class PropertyService extends BaseService {
 
         document['propertyId'] = property.id;
         document['fileId'] = documentsRaw[i].id;
-        document['folderId'] = oldFolderAsset[Number(folderNumber[i]) - 1 || 0];
+        document['folderId'] = oldFolderAsset[Number(folderNumber[i]) - 1 || 0].id;
         console.log(
           'fileeeeeeeeeeeee description -----------',
           descriptionFile[i],
@@ -606,7 +606,7 @@ export class PropertyService extends BaseService {
     //   assetProfile.updated_at = new Date(Date.now());
     //   await this.assetProfileRepository.save(assetProfile);
     // }
-    return null;
+    return ResponseUtils.buildSuccessResponse(null);
   }
 
   public checkType(name: string): string {
@@ -614,5 +614,50 @@ export class PropertyService extends BaseService {
     const arr = name.split('.');
     const type = arr[arr.length - 1];
     return type;
+  }
+
+  async getDocuments(id: number) {
+    const folder = await this.prismaService.folder.findMany({
+      where: { propertyId: id },
+      include: {
+        Document: {
+          orderBy:{createdAt:'desc'},
+          include: {
+            File: true
+          }
+        }
+      },
+    });
+
+    // const documentList = folder
+    //   ? folder.?.map((document: Document) => ({
+    //     id: document.id,
+    //     mimeType: document.file?.mimetype,
+    //     filename: document.file?.originalName,
+    //     folderName: document.folder?.folderName ? document.folder?.folderName : 'Unknown',
+    //     folderNumber: document.folder?.number ? document.folder?.number : 1,
+    //     size: document.file?.size,
+    //     createdAt: document.file?.created_at,
+    //     url: `${this.FILE_URL}/${document.file?.filename}`,
+    //     description: document.description,
+    //     isPublic: document.is_public,
+    //   }))
+    //   : [];
+    const data = folder.map((folder) => ({
+      number: folder.number,
+      folderName: folder.folderName,
+      folderId: folder.id,
+      folderDescription: folder.description,
+      items: folder.Document?.map((obj)=>({
+        id: obj.id,
+        fileName: obj.File.filename,
+        size: obj.File.size,
+        isPublic: obj.isPublic,
+        url: `${this.FILE_URL}/${obj.File?.filename}`,
+
+      }))
+    }));
+
+    return data;
   }
 }
