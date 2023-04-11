@@ -70,7 +70,7 @@ export class ResetPasswordInput {
       'Password must have at least 8 characters with 1 uppercase, 1 lowercase letter, 1 number and 1 special character',
   })
   @IsString()
-  @IsNotEmpty({ message: 'Please enter password' })
+  @IsNotEmpty({ message: 'Password should not be empty' })
   public newPassword!: string;
 
   @ApiProperty()
@@ -79,6 +79,6 @@ export class ResetPasswordInput {
   //     'Password must have at least 8 characters with 1 uppercase, 1 lowercase letter, 1 number and 1 special character',
   // })
   @IsString()
-  @IsNotEmpty({ message: 'Please confirm password' })
+  @IsNotEmpty({ message: 'Confirm password should not be empty' })
   public reNewPassword!: string;
 }

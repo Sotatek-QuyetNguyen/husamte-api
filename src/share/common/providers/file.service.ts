@@ -7,7 +7,7 @@ var FormData = require('form-data');
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 export class FileService {
-  private FILE_URL: string = 'http://localhost:8354';
+  private FILE_URL: string = 'http://172.16.1.224:8354';
 
   public async uploadBufferFile(
     files: Array<Express.Multer.File>,

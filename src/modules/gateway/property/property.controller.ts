@@ -124,7 +124,7 @@ export class PropertyController {
         id: { type: 'number' },
         removeDocument: {
           type: 'array',
-          items: { type: 'string', format: 'string' },
+          items: { type: 'number', format: 'number' },
         },
         folderName: {
           type: 'array',
@@ -152,7 +152,7 @@ export class PropertyController {
         },
         isPublicDocument: {
           type: 'array',
-          items: { type: 'string', format: 'string' },
+          items: { type: 'number', format: 'number' },
         },
         files: {
           type: 'array',
@@ -196,5 +196,16 @@ export class PropertyController {
       descriptionFileUpdate,
       isPublicDocument,
     );
+  }
+
+    /* Get list document of asset
+  @Param: id
+  @Return: list document
+  */
+  @ApiBearerAuth()
+  @UseGuards(AdminGuard)
+  @Get('documents/:id')
+  public async getDocuments( @Query() params: GetOnePropertyDTO): Promise<any> {
+    return ResponseUtils.buildSuccessResponse(await this.propertyService.getDocuments(params.id));
   }
 }

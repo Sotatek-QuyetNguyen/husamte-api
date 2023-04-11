@@ -172,7 +172,7 @@ model File {
   filename     String?
   path         String?
   size         Int?
-  isPublic     Boolean?
+  isPublic     Boolean? @default(true)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
@@ -186,10 +186,10 @@ model File {
 model Document {
   id          Int      @id @default(autoincrement())
   propertyId  Int
-  is_active   Boolean?
+  is_active   Boolean? @default(true)
   description String?
 
-  isPublic Boolean?
+  isPublic Boolean? @default(true)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @map("updated_at")
@@ -210,10 +210,10 @@ model Folder {
   number      Int?
   folderName  String?
   filename    String?
-  isPublic    Boolean?
+  isPublic    Boolean? @default(true)
   size        Int?
   description String?
-  is_active   Boolean?
+  is_active   Boolean? @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @map("updated_at")
 

@@ -434,3 +434,16 @@ export class GetPrimaryContactDTO {
   @RequiredField()
   id: number;
 }
+
+export class GetDocumentDTO {
+  @ApiProperty({
+    description: "Id of property",
+    required: true,
+    example: 1,
+  })
+  @IsBiggerThanZero()
+  @Type(() => Number)
+  @IsIntCustom()
+  @RequiredField()
+  id: number;
+}
