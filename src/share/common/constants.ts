@@ -1,6 +1,7 @@
 export const USER_ROLES = {
-  ADMIN: 1,
   USER: 0,
+  ADMIN: 1,
+  SUPPER_ADMIN: 2,
 };
 
 export const REDIS = {

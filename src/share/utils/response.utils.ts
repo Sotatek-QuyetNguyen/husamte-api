@@ -27,4 +27,4 @@ export class ResponseUtils {
       status: code === 0 ? 'success' : 'fail',
     };
   }
-}
+};
